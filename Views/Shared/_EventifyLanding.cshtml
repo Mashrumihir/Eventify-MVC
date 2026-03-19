@@ -1,0 +1,210 @@
+<nav class="ev-nav">
+    <div class="container ev-nav-inner">
+        <a class="ev-brand" href="#">
+            <span class="ev-brand-star"><i class="bi bi-star-fill"></i></span>
+            <span>Eventify</span>
+        </a>
+
+        <div class="ev-main-links">
+            <a href="/Home/Index">Home</a>
+            <a href="#">Events</a>
+            <a href="#">Categories</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+
+        <div class="ev-nav-actions">
+            <a class="ev-link-btn" href="/Auth/Login">Login</a>
+            <a class="ev-link-btn" href="/Auth/Register">Register</a>
+            <a class="ev-primary-btn ev-primary-btn-sm" href="#">Create Event</a>
+        </div>
+    </div>
+</nav>
+
+<section class="ev-hero">
+    <div class="container ev-hero-grid">
+        <div class="ev-hero-left">
+            <h1>Discover Amazing<br />Events Near You</h1>
+            <p>
+                Join thousands of people experiencing unforgettable moments.<br />
+                Find and book the perfect event for you.
+            </p>
+
+            <div class="ev-search-box">
+                <div class="ev-search-top">
+                    <div class="ev-input-wrap">
+                        <i class="bi bi-geo-alt"></i>
+                        <input type="text" placeholder="Location" />
+                    </div>
+                    <div class="ev-input-wrap">
+                        <i class="bi bi-calendar-event"></i>
+                        <input type="text" placeholder="mm/dd/yyyy" />
+                    </div>
+                    <div class="ev-input-wrap">
+                        <i class="bi bi-tags"></i>
+                        <select>
+                            <option>All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="ev-primary-btn">Search Events</button>
+            </div>
+
+            <div class="ev-hero-cta">
+                <a class="ev-btn-white" href="#">Explore Events</a>
+                <a class="ev-btn-outline" href="#">Learn More</a>
+            </div>
+        </div>
+
+        <div class="ev-hero-right">
+            <img src="@Url.Content("~/images/img.png")"
+                 alt="Hero Event"
+                 onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='@Url.Content("~/img.png")';}" />
+        </div>
+
+    </div>
+</section>
+
+<section class="ev-stats-section">
+    <div class="container ev-grid ev-grid-4">
+        <article class="ev-stat-card"><div class="ev-stat-icon blue"><i class="bi bi-calendar-week"></i></div><h3>10K+</h3><p>Events</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon violet"><i class="bi bi-people-fill"></i></div><h3>50K+</h3><p>Attendees</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon indigo"><i class="bi bi-file-earmark-text"></i></div><h3>2K+</h3><p>Organizers</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon gold"><i class="bi bi-star-fill"></i></div><h3>4.9</h3><p>Rating</p></article>
+    </div>
+</section>
+
+<section class="ev-section">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>Why Choose Eventify?</h2>
+            <p>Experience the future of event booking with our cutting edge features</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            <article class="ev-feature-card"><span class="ev-mini-icon blue"><i class="bi bi-lightning-charge-fill"></i></span><h4>Instant Booking</h4><p>Book your favorite events instantly with just a few clicks.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon green"><i class="bi bi-shield-lock-fill"></i></span><h4>Secure Payments</h4><p>Your payments are protected with bank-level security.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon purple"><i class="bi bi-ticket-perforated-fill"></i></span><h4>Digital Tickets</h4><p>Access your tickets anytime, anywhere on your mobile device.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon orange"><i class="bi bi-bell-fill"></i></span><h4>Event Reminders</h4><p>Never miss an event with smart notifications and reminders.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon pink"><i class="bi bi-heart-fill"></i></span><h4>Wishlist Events</h4><p>Save events you love and get notified when tickets are available.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon cyan"><i class="bi bi-graph-up-arrow"></i></span><h4>Trending Events</h4><p>Discover what's popular and trending in your area.</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="ev-section ev-soft-bg">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>Popular Events</h2>
+            <p>Don't miss out on the most exciting events happening near you</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000" alt="Music" />
+                <div class="ev-event-body"><h4>Summer Music Festival</h4><p>July 15, 2024</p><p class="ev-meta">Central Park, New York</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.8</span><b>Rs 89</b></div></div>
+                <button>Book Now</button>
+            </article>
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=1000" alt="Tech" />
+                <div class="ev-event-body"><h4>Tech Innovation Summit</h4><p>August 22, 2024</p><p class="ev-meta">Chicago, USA</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.9</span><b>Rs 149</b></div></div>
+                <button>Book Now</button>
+            </article>
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1000" alt="Sports" />
+                <div class="ev-event-body"><h4>Championship Final</h4><p>September 5, 2024</p><p class="ev-meta">Miami, USA</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.7</span><b>Rs 199</b></div></div>
+                <button>Book Now</button>
+            </article>
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1531058020387-3be344556be6?w=1000" alt="Art" />
+                <div class="ev-event-body"><h4>Modern Art Exhibition</h4><p>July 28, 2024</p><p class="ev-meta">Manhattan Gallery</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.8</span><b>Rs 45</b></div></div>
+                <button>Book Now</button>
+            </article>
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000" alt="Food" />
+                <div class="ev-event-body"><h4>Gourmet Food Festival</h4><p>August 16, 2024</p><p class="ev-meta">Rose Curve Ground</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.6</span><b>Rs 65</b></div></div>
+                <button>Book Now</button>
+            </article>
+            <article class="ev-event-card">
+                <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1000" alt="Business" />
+                <div class="ev-event-body"><h4>Business Leadership Summit</h4><p>September 12, 2024</p><p class="ev-meta">R.K.J Palace</p><div class="ev-event-row"><span><i class="bi bi-star-fill"></i> 4.9</span><b>Rs 299</b></div></div>
+                <button>Book Now</button>
+            </article>
+        </div>
+
+        <div class="ev-center mt-4">
+            <a class="ev-view-all" href="#">View All Events</a>
+        </div>
+    </div>
+</section>
+
+<section class="ev-section">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>Browse by Category</h2>
+            <p>Find the perfect event that matches your interests</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            <article class="ev-category-card"><span class="ev-mini-icon blue"><i class="bi bi-music-note-beamed"></i></span><h4>Music</h4><p>1,234 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon orange"><i class="bi bi-trophy-fill"></i></span><h4>Sports</h4><p>856 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon purple"><i class="bi bi-palette-fill"></i></span><h4>Arts</h4><p>642 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon red"><i class="bi bi-fork-knife"></i></span><h4>Food &amp; Drink</h4><p>423 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon indigo"><i class="bi bi-briefcase-fill"></i></span><h4>Business</h4><p>789 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon gold"><i class="bi bi-emoji-laughing-fill"></i></span><h4>Comedy</h4><p>312 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon pink"><i class="bi bi-cup-hot-fill"></i></span><h4>Nightlife</h4><p>567 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon green"><i class="bi bi-activity"></i></span><h4>Fitness</h4><p>445 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon cyan"><i class="bi bi-mortarboard-fill"></i></span><h4>Education</h4><p>678 events</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="ev-section">
+    <div class="container">
+        <div class="ev-newsletter">
+            <div class="ev-news-icon"><i class="bi bi-envelope-fill"></i></div>
+            <h2>Stay Updated with the Latest Events</h2>
+            <p>Get exclusive access to upcoming events, special offers, and insider updates delivered straight to your inbox.</p>
+            <div class="ev-news-form">
+                <input type="email" placeholder="Enter your email address" />
+                <button>Subscribe</button>
+            </div>
+            <small>We respect your privacy. Unsubscribe at any time.</small>
+        </div>
+    </div>
+</section>
+
+<footer class="ev-footer">
+    <div class="container">
+        <div class="ev-footer-grid">
+            <div>
+                <h4><i class="bi bi-star-fill"></i> Eventify</h4>
+                <p>Discover amazing events happening around you. From concerts to conferences, we've got you covered.</p>
+                <div class="ev-socials">
+                    <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                </div>
+            </div>
+            <div>
+                <h5>Quick Links</h5>
+                <a href="#">About Us</a><a href="#">Partner Events</a><a href="#">FAQ</a><a href="#">Pricing</a><a href="#">Blog</a><a href="#">Contact</a>
+            </div>
+            <div>
+                <h5>Categories</h5>
+                <a href="#">Music Events</a><a href="#">Sports Events</a><a href="#">Arts &amp; Culture</a><a href="#">Food &amp; Drink</a><a href="#">Business</a><a href="#">Nightlife</a>
+            </div>
+            <div>
+                <h5>Contact Info</h5>
+                <p><i class="bi bi-geo-alt"></i> Pool Colony 315<br />Ramnagar, Jaipur, India</p>
+                <p><i class="bi bi-telephone"></i> +91 81062 53134</p>
+                <p><i class="bi bi-envelope"></i> mmzahra-420@eventify.com</p>
+            </div>
+        </div>
+        <div class="ev-footer-bottom">
+            <span>(c) 2026 Eventify. All rights reserved.</span>
+            <div><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a></div>
+        </div>
+    </div>
+</footer>

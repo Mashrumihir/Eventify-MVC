@@ -1,0 +1,108 @@
+@model Eventify.ViewModels.AttendDashboardViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Dashboard";
+}
+
+@section PageStyles {
+    <style>
+        .ad-content { padding: 18px 20px 28px; background: #eceff4; min-height: calc(100vh - 58px); }
+        .ad-content h1 { margin: 0; font-size: 38px; color: #1f2937; font-weight: 800; }
+        .ad-subtitle { margin: 4px 0 14px; font-size: 14px; color: #6b7280; }
+        .ad-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .ad-stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px; }
+        .ad-stat-icon { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .ad-stat-card h3 { margin: 0; font-size: 28px; color: #1f2937; font-weight: 800; }
+        .ad-stat-card p { margin: 3px 0 0; font-size: 14px; color: #6b7280; }
+        .ad-grid { display: grid; gap: 12px; }
+        .ad-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .ad-section-head { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 10px; }
+        .ad-section-head h2 { margin: 0; font-size: 30px; color: #1f2937; font-weight: 800; }
+        .ad-inline-head a { color: #3572ff; background: #fff; border-radius: 999px; border: 1px solid #e5e7eb; padding: 8px 14px; font-size: 14px; text-decoration: none; }
+        .ad-event-card, .ad-reco-card { position: relative; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+        .ad-event-card:hover, .ad-reco-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, .09); }
+        .ad-event-card img, .ad-reco-card img { width: 100%; height: 155px; object-fit: cover; display: block; }
+        .ad-event-card .ad-tag { position: absolute; right: 12px; top: 10px; color: #fff; font-size: 11px; background: rgba(0, 0, 0, .35); padding: 4px 8px; border-radius: 999px; }
+        .ad-event-body { padding: 12px; }
+        .ad-event-body h4 { margin: 0 0 8px; font-size: 17px; color: #1f2937; font-weight: 700; }
+        .ad-event-body p { margin: 0 0 6px; color: #4b5563; font-size: 13px; }
+        .ad-event-body p i { color: #3b82f6; margin-right: 6px; }
+        .ad-rating { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #4b5563; font-size: 14px; }
+        .ad-rating i { color: #fbbf24; }
+        .ad-rating b { color: #1f2937; font-size: 24px; }
+        .ad-reco-card form { margin: 0; }
+        .ad-reco-card button { width: 100%; border: 0; border-radius: 10px; height: 40px; font-size: 15px; color: #fff; background: linear-gradient(90deg, #3b82f6, #06b6d4); cursor: pointer; }
+        .blue { background: #dbeafe; color: #2563eb; } .green { background: #dcfce7; color: #16a34a; } .red { background: #fee2e2; color: #ef4444; } .purple { background: #f3e8ff; color: #9333ea; }
+        @@media (max-width: 1200px) { .ad-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ad-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @@media (max-width: 700px) { .ad-content h1 { font-size: 30px; } .ad-stats, .ad-grid-3 { grid-template-columns: 1fr; } .ad-content { padding: 12px; } }
+    </style>
+}
+
+<section class="ad-content">
+    <h1>Welcome back, Mihir!</h1>
+    <p class="ad-subtitle">Here's what's happening with your events today</p>
+
+    <div class="ad-stats">
+        <article class="ad-stat-card"><div class="ad-stat-icon blue"><i class="bi bi-ticket-perforated"></i></div><h3>@Model.TotalBookings</h3><p>Total Bookings</p></article>
+        <article class="ad-stat-card"><div class="ad-stat-icon green"><i class="bi bi-calendar-check"></i></div><h3>@Model.UpcomingCount</h3><p>Upcoming Events</p></article>
+        <article class="ad-stat-card"><div class="ad-stat-icon red"><i class="bi bi-x-lg"></i></div><h3>@Model.CanceledCount</h3><p>Canceled</p></article>
+        <article class="ad-stat-card"><div class="ad-stat-icon purple"><i class="bi bi-bookmark-fill"></i></div><h3>@Model.SavedCount</h3><p>Saved Events</p></article>
+    </div>
+
+    <div class="ad-section-head"><h2>Upcoming Events</h2></div>
+    <div class="ad-grid ad-grid-3">
+        @foreach (var e in Model.UpcomingEvents)
+        {
+            <article class="ad-event-card ad-click-card" data-event-id="@e.Id">
+                <img src="@e.ImageUrl" alt="@e.Title" />
+                <span class="ad-tag">@e.Category</span>
+                <div class="ad-event-body">
+                    <h4>@e.Title</h4>
+                    <p><i class="bi bi-calendar3"></i> @e.StartDateTime.ToString("MMM dd, yyyy • h:mm tt")</p>
+                    <p><i class="bi bi-geo-alt-fill"></i> @e.Location</p>
+                </div>
+            </article>
+        }
+    </div>
+
+    <div class="ad-section-head ad-inline-head">
+        <h2>Recommended For You</h2>
+        <a href="/Attend/BrowseEvents">Browse All Events</a>
+    </div>
+    <div class="ad-grid ad-grid-3">
+        @foreach (var e in Model.RecommendedEvents)
+        {
+            <article class="ad-reco-card ad-click-card" data-event-id="@e.Id">
+                <img src="@e.ImageUrl" alt="@e.Title" />
+                <div class="ad-event-body">
+                    <h4>@e.Title</h4>
+                    <div class="ad-rating">
+                        <span><i class="bi bi-star-fill"></i> @e.Rating.ToString("0.0") <small>(@e.ReviewCount)</small></span>
+                        <b>@(e.Price == 0 ? "Free" : $"₹{e.Price:0}")</b>
+                    </div>
+                    <form asp-action="Book" asp-controller="Attend" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="eventId" value="@e.Id" />
+                        <button type="submit" class="ad-book-btn">Book Now</button>
+                    </form>
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".ad-click-card").forEach(function (card) {
+                card.addEventListener("click", function () {
+                    var id = card.getAttribute("data-event-id");
+                    if (id) window.location.href = "/Attend/EventDetails/" + id;
+                });
+            });
+            document.querySelectorAll(".ad-book-btn").forEach(function (btn) {
+                btn.addEventListener("click", function (event) { event.stopPropagation(); });
+            });
+        });
+    </script>
+}

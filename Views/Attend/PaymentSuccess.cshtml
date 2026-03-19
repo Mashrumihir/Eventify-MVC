@@ -1,0 +1,182 @@
+@model Eventify.ViewModels.PaymentSuccessViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Payment Success";
+    var imageUrl = string.IsNullOrWhiteSpace(Model.Event.ImageUrl)
+        ? "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=900&q=80"
+        : Model.Event.ImageUrl;
+    var endTime = Model.Event.StartDateTime.AddHours(8);
+}
+
+@section PageStyles {
+    <style>
+        .ps-wrap { padding: 26px; background: #dce3ed; min-height: calc(100vh - 58px); display: flex; align-items: flex-start; justify-content: center; }
+        .ps-card { width: 100%; max-width: 680px; background: #fff; border: 1px solid #d6deea; border-radius: 16px; padding: 18px; box-shadow: 0 12px 24px rgba(17, 24, 39, 0.08); }
+        .ps-icon { width: 52px; height: 52px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 30px; font-weight: 700; }
+        .ps-title { margin: 0; text-align: center; color: #0f2547; font-size: 48px; line-height: 1.05; font-weight: 800; }
+        .ps-sub { margin: 2px 0 0; text-align: center; color: #5f7595; font-size: 26px; }
+        .ps-booking { margin: 2px 0 14px; text-align: center; color: #2563eb; text-decoration: none; display: block; font-size: 22px; }
+        .ps-event { background: #eaf0f8; border-radius: 14px; padding: 12px; display: grid; grid-template-columns: 126px 1fr; gap: 12px; }
+        .ps-event img { width: 126px; height: 126px; object-fit: cover; border-radius: 12px; }
+        .ps-event h2 { margin: 0 0 5px; color: #0f2547; font-size: 52px; line-height: 1.03; font-weight: 800; }
+        .ps-meta { margin: 4px 0; color: #355177; font-size: 30px; line-height: 1.2; }
+        .ps-meta i { color: #2563eb; margin-right: 4px; }
+        .ps-total { margin-top: 12px; background: #f3f6fb; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; color: #183255; font-size: 42px; font-weight: 700; }
+        .ps-total strong { font-size: 58px; color: #2563eb; line-height: 1; }
+        .ps-actions { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .ps-btn-primary, .ps-btn-outline { height: 36px; padding: 0 15px; border-radius: 10px; font-size: 24px; font-weight: 700; border: 1px solid #2563eb; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .ps-btn-primary { background: linear-gradient(90deg, #3b82f6, #06b6d4); color: #fff; border-color: transparent; }
+        .ps-btn-outline { background: #fff; color: #2563eb; }
+        .ps-share-status { margin-top: 8px; min-height: 22px; text-align: center; font-size: 16px; color: #2563eb; font-weight: 600; }
+        .ps-links { margin-top: 10px; text-align: center; font-size: 22px; color: #5f7595; }
+        .ps-links a { color: #2563eb; text-decoration: none; margin: 0 8px; white-space: nowrap; }
+        .ps-note { margin-top: 12px; border: 1px solid #d4dfef; background: #eef3fa; color: #49658a; border-radius: 10px; padding: 8px 10px; font-size: 19px; }
+        @@media (max-width: 1000px) {
+            .ps-wrap { padding: 12px; }
+            .ps-title { font-size: 30px; }
+            .ps-sub, .ps-booking { font-size: 16px; }
+            .ps-event { grid-template-columns: 90px 1fr; }
+            .ps-event img { width: 90px; height: 90px; }
+            .ps-event h2 { font-size: 34px; }
+            .ps-meta { font-size: 17px; }
+            .ps-total { font-size: 24px; }
+            .ps-total strong { font-size: 36px; }
+            .ps-btn-primary, .ps-btn-outline { font-size: 16px; }
+            .ps-links { font-size: 14px; }
+            .ps-note { font-size: 13px; }
+        }
+        @@media (max-width: 700px) {
+            .ps-event { grid-template-columns: 1fr; }
+            .ps-event img { width: 100%; height: 180px; }
+        }
+    </style>
+}
+
+<section class="ps-wrap">
+    <article class="ps-card">
+        <div class="ps-icon"><i class="bi bi-check-lg"></i></div>
+        <h1 class="ps-title">Payment Successful!</h1>
+        <p class="ps-sub">Your booking has been confirmed</p>
+        <a class="ps-booking" href="#">Booking ID: @Model.BookingId</a>
+
+        <div class="ps-event">
+            <img src="@imageUrl" alt="@Model.Event.Title" />
+            <div>
+                <h2>@Model.Event.Title</h2>
+                <p class="ps-meta"><i class="bi bi-calendar3"></i>@Model.Event.StartDateTime.ToString("MMMM d, yyyy")</p>
+                <p class="ps-meta"><i class="bi bi-clock"></i>@Model.Event.StartDateTime.ToString("h:mm tt") - @endTime.ToString("h:mm tt")</p>
+                <p class="ps-meta"><i class="bi bi-geo-alt"></i>@Model.Event.Location</p>
+                <p class="ps-meta"><i class="bi bi-ticket-perforated"></i>@Model.TicketName</p>
+                <p class="ps-meta"><i class="bi bi-people"></i>Quantity: @Model.Quantity</p>
+            </div>
+        </div>
+
+        <div class="ps-total">
+            <span>Total Paid</span>
+            <strong>&#8377;@Model.TotalPaid.ToString("0.00")</strong>
+        </div>
+
+        <div class="ps-actions">
+            <a class="ps-btn-primary" href="@Url.Action("DownloadInvoicePdf", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId })">
+                <i class="bi bi-download"></i>Download Ticket
+            </a>
+            <button type="button"
+                    id="shareTicketBtn"
+                    class="ps-btn-outline"
+                    data-title="@Model.Event.Title"
+                    data-booking="@Model.BookingId"
+                    data-ticket="@Model.TicketName"
+                    data-total="@Model.TotalPaid.ToString("0.00")"
+                    data-pdf-url="@Url.Action("DownloadInvoicePdf", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId }, Context.Request.Scheme)"
+                    data-pdf-name="Invoice-@(Model.BookingId).pdf">
+                <i class="bi bi-share"></i>Share Ticket
+            </button>
+        </div>
+        <div id="shareTicketStatus" class="ps-share-status"></div>
+
+        <div class="ps-links">
+            <a href="/Attend/MyBookings">View My Bookings</a> |
+            <a href="/Attend/BrowseEvents">Browse More Events</a> |
+            <a href="/Attend/Dashboard">Go to Dashboard</a>
+        </div>
+
+        <div class="ps-note">
+            <i class="bi bi-envelope"></i> A confirmation email with your ticket has been sent to your registered email address.
+        </div>
+    </article>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const shareBtn = document.getElementById("shareTicketBtn");
+            const shareStatus = document.getElementById("shareTicketStatus");
+            if (!shareBtn) return;
+
+            function showStatus(message) {
+                if (!shareStatus) return;
+                shareStatus.textContent = message;
+                setTimeout(function () {
+                    if (shareStatus.textContent === message) {
+                        shareStatus.textContent = "";
+                    }
+                }, 2500);
+            }
+
+            shareBtn.addEventListener("click", async function () {
+                const title = shareBtn.getAttribute("data-title") || "Event Ticket";
+                const bookingId = shareBtn.getAttribute("data-booking") || "";
+                const ticket = shareBtn.getAttribute("data-ticket") || "Regular";
+                const total = shareBtn.getAttribute("data-total") || "0.00";
+                const pdfUrl = shareBtn.getAttribute("data-pdf-url") || window.location.href;
+                const pdfName = shareBtn.getAttribute("data-pdf-name") || `Invoice-${bookingId || "Eventify"}.pdf`;
+
+                try {
+                    if (navigator.share) {
+                        try {
+                            const response = await fetch(pdfUrl, { credentials: "same-origin" });
+                            if (response.ok) {
+                                const blob = await response.blob();
+                                const pdfFile = new File([blob], pdfName, { type: "application/pdf" });
+                                if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                                    await navigator.share({
+                                        title: `Invoice - ${title}`,
+                                        files: [pdfFile]
+                                    });
+                                    showStatus("PDF shared.");
+                                    return;
+                                }
+                            }
+                        } catch {
+                        }
+
+                        await navigator.share({
+                            title: `Invoice - ${title}`,
+                            url: pdfUrl
+                        });
+                        showStatus("Invoice link shared.");
+                        return;
+                    }
+
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(pdfUrl);
+                        showStatus("Invoice PDF link copied.");
+                        return;
+                    }
+
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(pdfUrl)}`;
+                    const popup = window.open(whatsappUrl, "_blank");
+                    if (popup) {
+                        showStatus("Opened WhatsApp with PDF link.");
+                        return;
+                    }
+
+                    window.open(pdfUrl, "_blank");
+                    showStatus("Opened invoice PDF.");
+                } catch {
+                    showStatus("Share canceled.");
+                }
+            });
+        });
+    </script>
+}

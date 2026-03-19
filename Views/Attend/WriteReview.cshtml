@@ -1,0 +1,79 @@
+@model Eventify.ViewModels.WriteAttendReviewViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Write Review";
+}
+
+@section PageStyles {
+    <style>
+        .wr-wrap { min-height: calc(100vh - 58px); background: #ccd5e1; padding: 18px; display: flex; justify-content: center; align-items: flex-start; }
+        .wr-card { width: 100%; max-width: 760px; background: #fff; border: 1px solid #dbe3ef; border-radius: 16px; padding: 18px; box-shadow: 0 10px 20px rgba(15,23,42,.08); }
+        .wr-title { margin: 0; color: #1b2a42; font-size: 50px; line-height: 1.02; font-weight: 800; }
+        .wr-event { margin: 4px 0 12px; color: #5f7493; font-size: 16px; }
+        .wr-field { margin-top: 8px; }
+        .wr-field label { display: block; color: #1e3352; font-size: 14px; margin-bottom: 4px; }
+        .wr-field input, .wr-field textarea {
+            width: 100%;
+            border: 1px solid #b7c7df;
+            border-radius: 10px;
+            background: #fff;
+            color: #102742;
+            font-size: 18px;
+            padding: 10px 12px;
+        }
+        .wr-field textarea { min-height: 120px; resize: vertical; }
+        .wr-error { color: #dc2626; font-size: 13px; margin-top: 4px; }
+        .wr-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }
+        .wr-btn {
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid #b7c7df;
+            background: #fff;
+            color: #1f3552;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 0 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wr-btn.primary {
+            border-color: transparent;
+            color: #fff;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            cursor: pointer;
+        }
+    </style>
+}
+
+<section class="wr-wrap">
+    <article class="wr-card">
+        <h1 class="wr-title">Write Review</h1>
+        <p class="wr-event">@Model.EventTitle</p>
+
+        <form method="post" action="@Url.Action("SaveReview", "Attend")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReviewId" />
+            <input type="hidden" asp-for="EventId" />
+            <input type="hidden" asp-for="EventTitle" />
+
+            <div class="wr-field">
+                <label asp-for="Rating">Rating (1-5)</label>
+                <input asp-for="Rating" type="number" min="1" max="5" />
+                <span class="wr-error" asp-validation-for="Rating"></span>
+            </div>
+
+            <div class="wr-field">
+                <label asp-for="Comment">Comment</label>
+                <textarea asp-for="Comment"></textarea>
+                <span class="wr-error" asp-validation-for="Comment"></span>
+            </div>
+
+            <div class="wr-actions">
+                <a class="wr-btn" href="/Attend/Reviews">Cancel</a>
+                <button class="wr-btn primary" type="submit">Submit Review</button>
+            </div>
+        </form>
+    </article>
+</section>
