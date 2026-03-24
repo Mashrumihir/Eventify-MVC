@@ -1,0 +1,276 @@
+@model Eventify.ViewModels.AdminUserManagementViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:22px;color:#1f3e76}.ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
+.msg{margin:0 0 10px;font-size:12px;color:#0b7f4d;font-weight:600}
+.search{display:flex;justify-content:center;margin-bottom:10px}.search input{width:min(520px,95%);padding:8px 12px;border-radius:999px;border:1px solid #b8d2f5;font-size:12px;background:#fff}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.role-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.role-filters a{
+    text-decoration:none;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid #b8c9e8;
+    color:#2a4b80;
+    background:#f2f6fd;
+    font-size:11px;
+    font-weight:600;
+}
+.role-filters a.active{
+    color:#fff;
+    border-color:#2e57a4;
+    background:linear-gradient(90deg,#315db5,#2eb2cc);
+}
+.new-user-btn{
+    border:0;
+    border-radius:999px;
+    padding:7px 12px;
+    font-size:12px;
+    font-weight:700;
+    color:#fff;
+    background:linear-gradient(90deg,#315db5,#2eb2cc);
+    cursor:pointer;
+}
+.user-add-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(7,16,35,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:14px;
+}
+.user-add-modal{
+    width:min(420px,100%);
+    background:#fff;
+    border:1px solid #cfdbee;
+    border-radius:12px;
+    box-shadow:0 16px 36px rgba(10,23,50,.3);
+    padding:12px;
+}
+.user-add-modal h3{margin:0 0 10px;color:#1d3e73;font-size:15px !important}
+.user-add-grid{display:grid;gap:8px}
+.user-add-grid input,.user-add-grid select{
+    width:100%;
+    border:1px solid #c7d6ec;
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:12px;
+}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:62px !important}
+.pw-toggle{
+    position:absolute;
+    right:8px;
+    top:50%;
+    transform:translateY(-50%);
+    border:1px solid #c7d6ec;
+    background:#f8fbff;
+    color:#214473;
+    border-radius:6px;
+    padding:2px 8px;
+    font-size:11px;
+    cursor:pointer;
+}
+.user-add-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.user-cancel-btn{
+    border:1px solid #c5d5ea;
+    background:#f7fbff;
+    color:#204272;
+    border-radius:8px;
+    padding:5px 10px;
+    font-size:12px;
+    cursor:pointer;
+}
+.tbl{
+    overflow:visible;
+    border:1px solid #c7d5ea;
+    border-radius:14px;
+    background:#fff;
+}
+.thead,.tr{display:grid;grid-template-columns:170px minmax(220px,1.7fr) 1fr 1fr .8fr 140px;gap:0;align-items:center}
+.tbl.no-bookings .thead,
+.tbl.no-bookings .tr{grid-template-columns:170px minmax(240px,1.9fr) 1fr 1fr 140px}
+.thead{background:#355395;color:#fff;font-size:12px;font-weight:700;border-bottom:1px solid #cdd9ec}
+.tr{background:#fff;border-bottom:1px solid #d6e0ef;font-size:11px}
+.tr:last-child{border-bottom:0}
+.thead > div,
+.tr > div{
+    padding:10px 12px;
+    border-right:1px solid #d6e0ef;
+    white-space:nowrap;
+}
+.thead > div{
+    border-right:1px solid rgba(255,255,255,.18);
+}
+.thead > div:last-child,
+.tr > div:last-child{
+    border-right:0;
+}
+.status.active{color:#15803d}.status.blocked{color:#b91c1c}
+.initial{width:28px;height:28px;border-radius:999px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#64748b}
+.usercell{display:flex;align-items:center;gap:12px}
+.usercell strong{font-size:11px;line-height:1.2}
+.thead > div:last-child{text-align:center}
+.tr > div:last-child{text-align:center}
+.actions{display:flex;gap:8px;align-items:center;justify-content:center}
+.action-form{margin:0}
+.action-btn{
+    border:1px solid #d2dceb;
+    background:#f8fbff;
+    color:#1e3e73;
+    border-radius:6px;
+    font-size:11px;
+    font-weight:600;
+    padding:4px 8px;
+    min-width:56px;
+    cursor:pointer;
+    text-align:center;
+}
+.action-btn.del{
+    border-color:#fecaca;
+    color:#dc2626;
+    background:#fff5f5;
+}
+@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.3fr) .9fr .9fr .6fr 130px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.5fr) .9fr .9fr 130px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.search input{font-size:12px}}
+@@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.2fr .9fr .9fr .7fr 120px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.3fr .9fr .9fr 120px}.initial{width:24px;height:24px;font-size:10px}}
+</style>
+}
+
+<h1 class="ad-title">User Management</h1>
+<p class="ad-sub">Manage and monitor all registered users on the platform.</p>
+@if (TempData["UserActionMessage"] is string actionMessage && !string.IsNullOrWhiteSpace(actionMessage))
+{
+    <p class="msg">@actionMessage</p>
+}
+
+@{
+    var createRole = Model.ActiveRole == "all" ? "attend" : Model.ActiveRole;
+}
+<div class="toolbar">
+    <div class="role-filters">
+        <a class="@(Model.ActiveRole=="all"?"active":"")" href="@Url.Action("UserManagement", new { role = "all", q = Model.Search })">All Users</a>
+        <a class="@(Model.ActiveRole=="attend"?"active":"")" href="@Url.Action("UserManagement", new { role = "attend", q = Model.Search })">Attend Users (@Model.AttendCount)</a>
+        <a class="@(Model.ActiveRole=="organizer"?"active":"")" href="@Url.Action("UserManagement", new { role = "organizer", q = Model.Search })">Organizer Users (@Model.OrganizerCount)</a>
+        <a class="@(Model.ActiveRole=="admin"?"active":"")" href="@Url.Action("UserManagement", new { role = "admin", q = Model.Search })">Admin Users (@Model.AdminCount)</a>
+    </div>
+    <button id="openAddUserModal" class="new-user-btn" type="button"><i class="bi bi-plus-lg"></i> New User</button>
+</div>
+
+<form class="search" method="get">
+    <input type="hidden" name="role" value="@Model.ActiveRole" />
+    <input type="text" name="q" value="@Model.Search" placeholder="Search users by name or email..." />
+</form>
+
+@{
+    var showBookings = !string.Equals(Model.ActiveRole, "admin", StringComparison.OrdinalIgnoreCase);
+}
+
+<section class="card tbl @(showBookings ? "" : "no-bookings")">
+    <div class="thead">
+        <div>User</div>
+        <div>Email</div>
+        <div>Status</div>
+        <div>Join Date</div>
+        @if (showBookings)
+        {
+            <div>Bookings</div>
+        }
+        <div>Actions</div>
+    </div>
+    @foreach (var u in Model.Users)
+    {
+        var returnUrl = Url.Action("UserManagement", new { role = Model.ActiveRole, q = Model.Search });
+        var blockLabel = string.Equals(u.Status, "blocked", StringComparison.OrdinalIgnoreCase) ? "Unblock" : "Block";
+        <div class="tr">
+            <div class="usercell"><span class="initial">@u.Initials</span> <strong>@u.FullName</strong></div>
+            <div>@u.Email</div>
+            <div class="status @u.Status">@u.Status</div>
+            <div>@u.JoinDate.ToString("yyyy-MM-dd")</div>
+            @if (showBookings)
+            {
+                <div><strong>@u.Bookings</strong></div>
+            }
+            <div class="actions">
+                <form method="post" asp-controller="Admin" asp-action="BlockUser" class="action-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@u.Id" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <button class="action-btn" type="submit">@blockLabel</button>
+                </form>
+                <form method="post" asp-controller="Admin" asp-action="DeleteUser" class="action-form" onsubmit="return confirm('Delete this user?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@u.Id" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <button class="action-btn del" type="submit">Delete</button>
+                </form>
+            </div>
+        </div>
+    }
+</section>
+
+<div id="userAddBackdrop" class="user-add-backdrop">
+    <div class="user-add-modal">
+        <h3>Add User</h3>
+        <form method="post" asp-controller="Admin" asp-action="CreateUser">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Url.Action("UserManagement", new { role = Model.ActiveRole, q = Model.Search })" />
+            <div class="user-add-grid">
+                <input type="text" name="fullName" placeholder="Full name" required />
+                <input type="email" name="email" placeholder="Email" required />
+                <div class="pw-wrap">
+                    <input id="newUserPassword" type="password" name="password" placeholder="Password" required />
+                    <button id="toggleNewUserPassword" class="pw-toggle" type="button">Show</button>
+                </div>
+                <select name="role" required>
+                    <option value="attend" selected="@(createRole=="attend")">Attend</option>
+                    <option value="organizer" selected="@(createRole=="organizer")">Organizer</option>
+                    <option value="admin" selected="@(createRole=="admin")">Admin</option>
+                </select>
+            </div>
+            <div class="user-add-actions">
+                <button id="cancelAddUserModal" class="user-cancel-btn" type="button">Cancel</button>
+                <button class="new-user-btn" type="submit">Add User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const openBtn = document.getElementById("openAddUserModal");
+        const backdrop = document.getElementById("userAddBackdrop");
+        const cancelBtn = document.getElementById("cancelAddUserModal");
+        const pwInput = document.getElementById("newUserPassword");
+        const pwToggle = document.getElementById("toggleNewUserPassword");
+        if (!openBtn || !backdrop || !cancelBtn) return;
+
+        openBtn.addEventListener("click", function () {
+            backdrop.style.display = "flex";
+        });
+
+        function closeModal() {
+            backdrop.style.display = "none";
+        }
+
+        cancelBtn.addEventListener("click", closeModal);
+        backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) closeModal();
+        });
+
+        if (pwInput && pwToggle) {
+            pwToggle.addEventListener("click", function () {
+                const show = pwInput.type === "password";
+                pwInput.type = show ? "text" : "password";
+                pwToggle.textContent = show ? "Hide" : "Show";
+            });
+        }
+    })();
+</script>
+}

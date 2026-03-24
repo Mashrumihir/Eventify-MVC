@@ -1,0 +1,115 @@
+@model Eventify.ViewModels.AttendPaymentsViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Payments";
+}
+
+@section PageStyles {
+<style>
+.ap-wrap{padding:24px}.ap-head h1{margin:0;font-size:42px;font-weight:800;color:#0f2547}.ap-head p{margin:4px 0 14px;color:#60748f}
+.ap-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.ap-s{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:14px}
+.ap-s .lbl{color:#667085;font-size:13px}.ap-s .num{margin-top:6px;font-size:30px;font-weight:800;color:#132f58}
+.ap-table{background:#fff;border:1px solid #dbe3ef;border-radius:14px;overflow:hidden}
+.ap-table table{width:100%;border-collapse:collapse}
+.ap-table th,.ap-table td{padding:12px 10px;border-top:1px solid #e5eaf2;font-size:13px}
+.ap-table th{border-top:0;background:#f8fbff;color:#344054;text-align:left}
+.amt{font-weight:800}
+.ok{color:#16a34a}.free{color:#0891b2}.pending{color:#ca8a04}
+.ap-foot{display:flex;justify-content:space-between;align-items:center;padding:12px;color:#667085;font-size:12px}
+.pager{display:flex;align-items:center;gap:8px}
+.pager a,.pager span{border:1px solid #d2dae6;border-radius:8px;padding:6px 10px;text-decoration:none}
+.pager a{color:#344054;background:#fff}.pager .disabled{color:#98a2b3;background:#f8fafc}
+@@media(max-width:1100px){.ap-stats{grid-template-columns:1fr}.ap-table{overflow:auto}}
+</style>
+}
+
+<section class="ap-wrap">
+    <header class="ap-head">
+        <h1>Payments</h1>
+        <p>All your booking payment records from database.</p>
+    </header>
+
+    <div class="ap-stats">
+        <article class="ap-s">
+            <div class="lbl">Total Paid</div>
+            <div class="num">&#8377;@Model.TotalPaid.ToString("0,0.00")</div>
+        </article>
+        <article class="ap-s">
+            <div class="lbl">Successful Transactions</div>
+            <div class="num">@Model.SuccessfulTransactions</div>
+        </article>
+        <article class="ap-s">
+            <div class="lbl">Free Bookings</div>
+            <div class="num">@Model.FreeBookings</div>
+        </article>
+    </div>
+
+    <section class="ap-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Transaction</th>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Ticket</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8">No payments found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var row in Model.Rows)
+                    {
+                        var statusClass = row.Status == "Success" ? "ok" : row.Status == "Free" ? "free" : "pending";
+                        <tr>
+                            <td>#@row.TransactionId<br /><small>@row.BookingCode</small></td>
+                            <td>@row.Date.ToString("dd MMM yyyy, h:mm tt")</td>
+                            <td>@row.EventTitle</td>
+                            <td>@row.TicketName</td>
+                            <td>@row.Quantity</td>
+                            <td class="amt">&#8377;@row.Amount.ToString("0.00")</td>
+                            <td>@row.Method</td>
+                            <td class="@statusClass">@row.Status</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        @{
+            var start = Model.TotalCount == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+            var end = Math.Min(Model.TotalCount, Model.Page * Model.PageSize);
+        }
+        <div class="ap-foot">
+            <div>Showing @start-@end of @Model.TotalCount payments</div>
+            <div class="pager">
+                @if (Model.HasPrevious)
+                {
+                    <a href="@Url.Action("Payments", "Attend", new { page = Model.Page - 1 })">Previous</a>
+                }
+                else
+                {
+                    <span class="disabled">Previous</span>
+                }
+                <span>Page @Model.Page / @Model.TotalPages</span>
+                @if (Model.HasNext)
+                {
+                    <a href="@Url.Action("Payments", "Attend", new { page = Model.Page + 1 })">Next</a>
+                }
+                else
+                {
+                    <span class="disabled">Next</span>
+                }
+            </div>
+        </div>
+    </section>
+</section>

@@ -1,0 +1,72 @@
+@model Eventify.ViewModels.OrganizerEventDetailsViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "View Event";
+    var percent = Model.Capacity <= 0 ? 0 : Math.Min(100, (int)Math.Round((Model.Sold * 100.0) / Model.Capacity));
+}
+
+@section PageStyles {
+<style>
+.ve-wrap{padding:24px}
+.ve-card{background:#fff;border:1px solid #d8dde5;border-radius:20px;overflow:hidden}
+.ve-head{padding:16px 20px;background:linear-gradient(90deg,#2956d9,#18b8cc);color:#fff;display:flex;justify-content:space-between;align-items:flex-start}
+.ve-head h1{margin:0;font-size:30px;font-weight:800}
+.ve-date{margin-top:8px;font-size:15px}
+.ve-body{padding:18px 20px}
+.ve-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lbl{color:#6b7280;font-size:13px}
+.val{font-size:33px;font-weight:800;color:#101828;line-height:1.2}
+.val.cat{color:#2563eb}
+.val.rev{color:#16a34a}
+.progress{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:8px}
+.progress span{display:block;height:100%;background:#2956d9}
+.desc{margin-top:14px;font-size:14px;color:#374151;line-height:1.6}
+.actions{margin-top:16px;display:flex;gap:10px;align-items:center}
+.btn{padding:8px 16px;border:1px solid #cfd4dc;border-radius:10px;color:#344054;background:#fff;text-decoration:none;font-size:14px}
+.btn.primary{border:0;background:linear-gradient(90deg,#2563eb,#06b6d4);color:#fff}
+@@media(max-width:1200px){.ve-head h1{font-size:22px}.val{font-size:24px}.ve-grid{grid-template-columns:1fr}}
+</style>
+}
+
+<section class="ve-wrap">
+    <article class="ve-card">
+        <header class="ve-head">
+            <div>
+                <h1>@Model.Title</h1>
+                <div class="ve-date"><i class="bi bi-calendar3"></i> @Model.Date.ToString("MMMM d, yyyy")</div>
+            </div>
+            <div>@Model.Status</div>
+        </header>
+        <div class="ve-body">
+            <div class="ve-grid">
+                <div>
+                    <div class="lbl">Location</div>
+                    <div class="val">@Model.Location</div>
+                </div>
+                <div>
+                    <div class="lbl">Category</div>
+                    <div class="val cat">@Model.Category</div>
+                </div>
+                <div>
+                    <div class="lbl">Revenue</div>
+                    <div class="val rev">&#8377;@Model.Revenue.ToString("0,0")</div>
+                </div>
+                <div>
+                    <div class="lbl">Tickets Sold</div>
+                    <div class="val">@Model.Sold / @Model.Capacity</div>
+                    <div class="progress"><span style="width:@percent%"></span></div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="desc">@Model.Description</div>
+            }
+
+            <div class="actions">
+                <a class="btn" href="@Url.Action("ManageEvents", "Organizer")"><i class="bi bi-arrow-left"></i> Back</a>
+                <a class="btn primary" href="@Url.Action("CreateEvent", "Organizer", new { id = Model.Id })"><i class="bi bi-pencil"></i> Edit Event</a>
+            </div>
+        </div>
+    </article>
+</section>

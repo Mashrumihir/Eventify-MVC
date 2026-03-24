@@ -1,0 +1,156 @@
+﻿@model Eventify.ViewModels.AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title { margin: 0; font-size: 28px !important; color: #244884; font-weight: 800; letter-spacing: .2px; }
+.ad-sub { margin: 2px 0 14px; font-size: 15px !important; color: #5f7699; }
+.action-msg {
+    margin: 0 0 10px;
+    font-size: 13px !important;
+    color: #0c9b5a;
+    font-weight: 600;
+}
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.stat {
+    background: #f8fbff;
+    border: 1px solid #bfd2ed !important;
+    border-radius: 18px !important;
+    padding: 14px 12px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.stat .l { font-size: 15px !important; color: #3f5f8d; font-weight: 600; margin-bottom: 4px; }
+.stat .n { font-size: 45px !important; line-height: 1; font-weight: 800; color: #274a80; margin-bottom: 4px; }
+.trend { font-size: 11px !important; color: #4d6a95; }
+.trend .up { color: #08a05f; font-weight: 700; }
+.trend .down { color: #ef4444; font-weight: 700; }
+
+.stat .ico {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(120deg, #315db5, #2eb2cc);
+    color: #fff;
+    font-size: 17px;
+    flex: 0 0 auto;
+}
+
+.pending { border-radius: 14px !important; border: 1px solid #bfd2ed !important; padding: 10px !important; }
+.pending h2 { margin: 0 0 10px; font-size: 17px !important; color: #23467d; font-weight: 800; }
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #edf3fc;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+.row:last-child { margin-bottom: 0; }
+.row .name { font-size: 15px !important; font-weight: 700; color: #1f467e; }
+.row .meta { font-size: 12px !important; color: #5a7497; margin-top: 2px; }
+.actions { display: flex; gap: 8px; }
+.action-form { margin: 0; }
+
+.btn-grad,
+.btn-outline-red {
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+    border-radius: 999px !important;
+    font-weight: 700;
+}
+
+@@media (max-width: 1200px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+}
+@@media (max-width: 760px) {
+    .stats { grid-template-columns: 1fr; }
+    .ad-title { font-size: 24px !important; }
+    .ad-sub { font-size: 14px !important; }
+    .stat .n { font-size: 36px !important; }
+}
+</style>
+}
+
+<h1 class="ad-title">Dashboard Overview</h1>
+<p class="ad-sub">Welcome back! Here's what's happening with your platform.</p>
+@if (TempData["AdminActionMessage"] is string actionMessage && !string.IsNullOrWhiteSpace(actionMessage))
+{
+    <p class="action-msg">@actionMessage</p>
+}
+
+<div class="stats">
+    <article class="card stat">
+        <div>
+            <div class="l">Total Users</div>
+            <div class="n">@Model.TotalUsers.ToString("N0")</div>
+            <div class="trend"><span class="@(Model.UsersTrendPercent >= 0 ? "up" : "down")">@Model.UsersTrendPercent.ToString("+0.0;-0.0;0.0")%</span> vs last month</div>
+        </div>
+        <span class="ico"><i class="bi bi-people"></i></span>
+    </article>
+    <article class="card stat">
+        <div>
+            <div class="l">Total Organizers</div>
+            <div class="n">@Model.TotalOrganizers.ToString("N0")</div>
+            <div class="trend"><span class="@(Model.OrganizersTrendPercent >= 0 ? "up" : "down")">@Model.OrganizersTrendPercent.ToString("+0.0;-0.0;0.0")%</span> vs last month</div>
+        </div>
+        <span class="ico"><i class="bi bi-person-check"></i></span>
+    </article>
+    <article class="card stat">
+        <div>
+            <div class="l">Total Events</div>
+            <div class="n">@Model.TotalEvents.ToString("N0")</div>
+            <div class="trend"><span class="@(Model.EventsTrendPercent >= 0 ? "up" : "down")">@Model.EventsTrendPercent.ToString("+0.0;-0.0;0.0")%</span> vs last month</div>
+        </div>
+        <span class="ico"><i class="bi bi-calendar-event"></i></span>
+    </article>
+    <article class="card stat">
+        <div>
+            <div class="l">Revenue Summary</div>
+            <div class="n">&#8377;@Model.Revenue.ToString("N0")</div>
+            <div class="trend"><span class="@(Model.RevenueTrendPercent >= 0 ? "up" : "down")">@Model.RevenueTrendPercent.ToString("+0.0;-0.0;0.0")%</span> vs last month</div>
+        </div>
+        <span class="ico"><i class="bi bi-currency-rupee"></i></span>
+    </article>
+</div>
+
+<section class="card pending">
+    <h2>Pending Approvals</h2>
+    @foreach (var p in Model.PendingApprovals)
+    {
+        var isOrganizer = string.Equals(p.Type, "Organizer", StringComparison.OrdinalIgnoreCase);
+        var actionName = isOrganizer ? "DecideOrganizer" : "DecideEvent";
+        <div class="row">
+            <div>
+                <div class="name">@p.Name</div>
+                <div class="meta">@p.Type • Submitted on @p.DateText</div>
+            </div>
+            <div class="actions">
+                <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="decision" value="approve" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
+                    <button class="btn-grad" type="submit">Approve</button>
+                </form>
+                <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="decision" value="reject" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
+                    <button class="btn-outline-red" type="submit">Reject</button>
+                </form>
+            </div>
+        </div>
+    }
+</section>

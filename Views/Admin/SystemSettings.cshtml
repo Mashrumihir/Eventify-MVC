@@ -1,0 +1,88 @@
+@model Eventify.ViewModels.AdminSystemSettingsViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:22px;color:#1f3e76}
+.ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
+
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
+.cat{padding:12px}
+.cat h3{font-size:16px;margin:8px 0 4px;color:#1f3e76}
+.cat p{font-size:12px;color:#667085;margin:0 0 8px}
+.cat .count{font-size:18px;color:#325ea9;font-weight:800}
+.ic{width:40px;height:40px;border-radius:999px;background:#315aa6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+
+.cms{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cms-card{
+    padding:14px !important;
+    border:1px solid #d6e0ef !important;
+    border-radius:18px !important;
+    background:#fff;
+}
+.cms-top{display:flex;align-items:center;gap:12px}
+.cms-icon{
+    width:36px;height:36px;border-radius:999px;background:#1f4fde;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;
+}
+.cms-title{margin:0;color:#152e52;font-size:16px !important;font-weight:800}
+.cms-slug{margin:2px 0 0;color:#4e678b;font-size:11px}
+.cms-line{height:1px;background:#dce6f3;margin:12px 0}
+.cms-bottom{display:flex;justify-content:space-between;align-items:center}
+.cms-updated{color:#4e678b;font-size:11px}
+.cms-edit{
+    border:1px solid #cfd9e9;background:#f4f8fe;color:#203f70;border-radius:10px;
+    font-size:12px;padding:6px 14px;cursor:pointer;
+}
+
+@@media(max-width:1200px){.grid{grid-template-columns:1fr 1fr}.cms{grid-template-columns:1fr}}
+</style>
+}
+
+<h1 class="ad-title">System Settings</h1>
+<p class="ad-sub">Configure platform settings and manage content.</p>
+
+<div class="pill-group">
+    <a class="pill @(Model.ActiveTab=="categories"?"active":"")" href="@Url.Action("SystemSettings", new { tab = "categories" })"><i class="bi bi-tag-fill"></i> Categories</a>
+    <a class="pill @(Model.ActiveTab=="cms"?"active":"")" href="@Url.Action("SystemSettings", new { tab = "cms" })"><i class="bi bi-file-earmark-text-fill"></i> CMS Pages</a>
+</div>
+
+@if (Model.ActiveTab == "categories")
+{
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-grad" type="button"><i class="bi bi-plus-lg"></i> Add Category</button></div>
+    <div class="grid">
+        @foreach (var c in Model.Categories)
+        {
+            <article class="card cat">
+                <span class="ic"><i class="bi @c.Icon"></i></span>
+                <h3>@c.Name</h3>
+                <p>@c.Description</p>
+                <p>Events <span class="count" style="float:right">@c.EventCount</span></p>
+            </article>
+        }
+    </div>
+}
+else
+{
+    <div class="cms">
+        @foreach (var p in Model.CmsPages)
+        {
+            <article class="card cms-card">
+                <div class="cms-top">
+                    <span class="cms-icon"><i class="bi bi-file-earmark-text"></i></span>
+                    <div>
+                        <h3 class="cms-title">@p.Title</h3>
+                        <p class="cms-slug">@p.Slug</p>
+                    </div>
+                </div>
+                <div class="cms-line"></div>
+                <div class="cms-bottom">
+                    <span class="cms-updated">Updated: @p.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                    <button class="cms-edit" type="button"><i class="bi bi-pencil"></i> Edit</button>
+                </div>
+            </article>
+        }
+    </div>
+}

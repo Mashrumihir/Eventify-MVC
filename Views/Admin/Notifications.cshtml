@@ -1,0 +1,172 @@
+@model Eventify.ViewModels.AdminNotificationsViewModel
+@{
+    Layout = "_AdminLayout";
+    string Cls(string type) => type switch
+    {
+        "booking" => "bk",
+        "reminder" => "rm",
+        "payment" => "pm",
+        "cancellation" => "cn",
+        _ => "an"
+    };
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:22px;color:#1f3e76}
+.ad-sub{margin:4px 0 10px;font-size:13px;color:#6b7280}
+.list{
+    padding:10px;
+    border:1px solid #cfdced !important;
+    border-radius:14px !important;
+    background:#f5f8fc;
+}
+.list-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.list h2{font-size:18px !important;margin:0;color:#1a355d}
+.tools{display:flex;align-items:center;gap:6px}
+.tools select{
+    height:30px;
+    border:1px solid #b9cae3;
+    border-radius:8px;
+    background:#fff;
+    color:#1c3c69;
+    font-size:11px;
+    padding:0 8px;
+    min-width:90px;
+}
+.tools button{
+    height:30px;
+    border:1px solid #b9cae3;
+    border-radius:8px;
+    background:#fff;
+    color:#1c3c69;
+    font-size:11px;
+    padding:0 10px;
+    cursor:pointer;
+}
+.it{
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    border-left:3px solid;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+.it:last-child{margin-bottom:0}
+.it-main{min-width:0}
+.it-head{display:flex;align-items:center;gap:8px}
+.it-ic{
+    width:22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:11px;flex:0 0 auto;
+}
+.it h3{margin:0;font-size:14px !important;color:#1f2f4a}
+.it p{margin:2px 0 0;font-size:12px;color:#405979}
+.it .time{font-size:11px;color:#5d7697;margin-top:1px}
+.tag{
+    border:1px solid #b8cae4;
+    border-radius:6px;
+    font-size:9px;
+    color:#2c4d7a;
+    background:#fff;
+    padding:2px 6px;
+    height:fit-content;
+}
+.it.read .tag{opacity:.7}
+.bk{background:#e9f6ef;border-color:#10b981}
+.rm{background:#edf4ff;border-color:#3b82f6}
+.pm{background:#f3efff;border-color:#8b5cf6}
+.cn{background:#fff0f0;border-color:#ff4d4d}
+.an{background:#fff5ea;border-color:#f59e0b}
+
+.bk .it-ic{background:#c9f1df;color:#0fae76}
+.rm .it-ic{background:#d8e8ff;color:#357bf2}
+.pm .it-ic{background:#e5dbff;color:#8a5af6}
+.cn .it-ic{background:#ffdede;color:#ef4444}
+.an .it-ic{background:#ffe8c8;color:#f59e0b}
+
+@@media (max-width: 780px){
+    .list-head{flex-direction:column;align-items:flex-start}
+    .tools{width:100%}
+    .tools select{flex:1}
+    .it{flex-direction:column;align-items:flex-start}
+}
+</style>
+}
+
+<h1 class="ad-title">Notifications Center</h1>
+<p class="ad-sub">Stay updated with all platform activities and announcements.</p>
+
+<section class="card list">
+    <div class="list-head">
+        <h2>Recent Notifications</h2>
+        <div class="tools">
+            <select id="ntFilter">
+                <option value="all">All</option>
+                <option value="booking">Bookings</option>
+                <option value="reminder">Reminders</option>
+                <option value="payment">Payments</option>
+                <option value="cancellation">Cancellations</option>
+                <option value="announcement">Announcements</option>
+            </select>
+            <button id="markAllRead" type="button">Mark all as read</button>
+        </div>
+    </div>
+    @foreach (var i in Model.Items.OrderByDescending(x => x.SortDateUtc))
+    {
+        var type = i.Type switch
+        {
+            "booking" => "booking",
+            "reminder" => "reminder",
+            "payment" => "payment",
+            "cancellation" => "cancellation",
+            _ => "announcement"
+        };
+        var icon = type switch
+        {
+            "booking" => "bi-check2-circle",
+            "reminder" => "bi-calendar-event",
+            "payment" => "bi-credit-card",
+            "cancellation" => "bi-x-circle",
+            _ => "bi-megaphone"
+        };
+        <article class="it @Cls(i.Type)" data-type="@type">
+            <div class="it-main">
+                <div class="it-head">
+                    <span class="it-ic"><i class="bi @icon"></i></span>
+                    <h3>@i.Title</h3>
+                </div>
+                <p>@i.Message</p>
+                <div class="time">@i.TimeAgo</div>
+            </div>
+            <span class="tag">Unread</span>
+        </article>
+    }
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        const filter = document.getElementById("ntFilter");
+        const markAll = document.getElementById("markAllRead");
+        const cards = Array.from(document.querySelectorAll(".it[data-type]"));
+        if (!filter || !markAll || cards.length === 0) return;
+
+        filter.addEventListener("change", function () {
+            const selected = (filter.value || "all").toLowerCase();
+            cards.forEach(function (card) {
+                const type = (card.dataset.type || "").toLowerCase();
+                card.style.display = (selected === "all" || type === selected) ? "flex" : "none";
+            });
+        });
+
+        markAll.addEventListener("click", function () {
+            cards.forEach(function (card) {
+                const tag = card.querySelector(".tag");
+                if (tag) tag.textContent = "Read";
+                card.classList.add("read");
+            });
+        });
+    })();
+</script>
+}

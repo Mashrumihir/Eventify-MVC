@@ -1,0 +1,495 @@
+@{
+    ViewData["Title"] = "Contact";
+}
+
+<style>
+    body {
+        background: linear-gradient(180deg, #2f75b9 0%, #2daed4 100%);
+        position: relative;
+        overflow-x: hidden;
+    }
+    .ct-page {
+        --ct-text: #183f70;
+        --ct-sub: #5a7698;
+        --ct-border: #d5e3f8;
+        max-width: 1120px;
+        margin: 24px auto 48px;
+        padding: 0 16px;
+        color: var(--ct-text);
+        position: relative;
+        z-index: 1;
+    }
+
+    .ct-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin: 0 0 12px;
+        border-radius: 999px;
+        border: 1px solid #c9dbf8;
+        background: #f6faff;
+        color: #1f4478;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .ct-back-link:hover {
+        transform: translateY(-1px);
+        border-color: #b7cff3;
+        box-shadow: 0 8px 18px rgba(31, 73, 138, .14);
+        color: #163a67;
+    }
+
+    .ct-back-link i { font-size: 13px; }
+
+    .ct-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 12px;
+    }
+
+    .ct-panel {
+        background: #fff;
+        border: 1px solid var(--ct-border);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: 0 10px 26px rgba(35, 89, 162, .09);
+    }
+
+    .ct-title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        color: #1c4172;
+    }
+
+    .ct-sub {
+        margin: 8px 0 14px;
+        color: var(--ct-sub);
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .ct-details {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .ct-detail {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        color: #416287;
+        font-size: 14px;
+    }
+
+    .ct-detail i {
+        color: #2360ce;
+        margin-top: 2px;
+    }
+
+    .ct-socials {
+        margin-top: 14px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .ct-social {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        border: 1px solid #d5e4f9;
+        background: #fff;
+        color: #235a95;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: transform .2s ease, box-shadow .25s ease, border-color .25s ease, color .2s ease;
+    }
+
+    .ct-social:hover {
+        transform: scale(1.08);
+        color: #c68a00;
+        border-color: #ffd476;
+        box-shadow: 0 0 0 1px #ffd476 inset, 0 0 18px rgba(255, 194, 67, .45);
+    }
+
+    .ct-form {
+        display: grid;
+        gap: 10px;
+    }
+
+    .ct-grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .ct-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #3f6188;
+        margin-bottom: 5px;
+    }
+
+    .ct-field input,
+    .ct-field select,
+    .ct-field textarea {
+        width: 100%;
+        border: 1px solid #c8dbf7;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #23486f;
+        background: #fbfdff;
+        outline: none;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .ct-field textarea {
+        min-height: 126px;
+        resize: vertical;
+    }
+
+    .ct-field input:focus,
+    .ct-field select:focus,
+    .ct-field textarea:focus {
+        border-color: #84aceb;
+        box-shadow: 0 0 0 3px rgba(120, 170, 240, .2);
+    }
+
+    .ct-submit {
+        border: 0;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #265fd0, #1ea4c8);
+        background-size: 180% 180%;
+        background-position: left center;
+        cursor: pointer;
+        transition: transform .2s ease, background-position .25s ease, box-shadow .25s ease;
+    }
+
+    .ct-submit:hover {
+        transform: translateY(-1px);
+        background-position: right center;
+        box-shadow: 0 12px 20px rgba(32, 99, 191, .25);
+    }
+    
+    .ct-map {
+        margin-top: 14px;
+        border: 1px solid #d5e3f8;
+        border-radius: 16px;
+        background: #fff;
+        padding: 10px;
+        box-shadow: 0 10px 24px rgba(34, 87, 158, .1);
+    }
+
+    .ct-map-box {
+        border-radius: 12px;
+        min-height: 300px;
+        border: 1px solid #cadcf8;
+        position: relative;
+        overflow: hidden;
+        background: #dfeafb;
+    }
+
+    .ct-map-frame {
+        width: 100%;
+        height: 300px;
+        border: 0;
+        display: block;
+    }
+
+    .ct-map-label {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        background: rgba(17, 53, 104, .88);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(2px);
+    }
+
+    .ct-map-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .ct-map-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        border: 1px solid #c9dcf8;
+        background: #f6faff;
+        color: #1b4f89;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 11px;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .ct-map-link:hover {
+        transform: translateY(-1px);
+        border-color: #89afea;
+        box-shadow: 0 8px 16px rgba(39, 92, 170, .18);
+    }
+
+
+    .ct-chat-widget {
+        position: fixed;
+        right: 18px;
+        bottom: 68px;
+        width: min(320px, 92vw);
+        background: #fff;
+        border: 1px solid #c9dbf6;
+        border-radius: 14px;
+        box-shadow: 0 16px 30px rgba(24, 68, 134, .24);
+        overflow: hidden;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(10px) scale(.98);
+        pointer-events: none;
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .ct-chat-widget.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .ct-chat-head {
+        padding: 10px 12px;
+        color: #fff;
+        background: linear-gradient(135deg, #265fd0, #1fa3c7);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .ct-chat-close {
+        border: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        cursor: pointer;
+        color: #1f4f8a;
+        background: #fff;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .ct-chat-body {
+        padding: 10px;
+        max-height: 220px;
+        overflow: auto;
+        background: #f8fbff;
+        display: grid;
+        gap: 8px;
+    }
+
+    .ct-msg {
+        max-width: 86%;
+        padding: 8px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .ct-msg.bot {
+        color: #23486f;
+        background: #e8f0ff;
+        border: 1px solid #d2e2fa;
+        justify-self: start;
+    }
+
+    .ct-msg.user {
+        color: #fff;
+        background: linear-gradient(135deg, #2a64d2, #1ea5c8);
+        justify-self: end;
+    }
+
+    .ct-chat-form {
+        border-top: 1px solid #dce8fa;
+        padding: 8px;
+        display: flex;
+        gap: 6px;
+        background: #fff;
+    }
+
+    .ct-chat-form input {
+        flex: 1;
+        border: 1px solid #c9dcf8;
+        border-radius: 999px;
+        padding: 8px 10px;
+        font-size: 13px;
+        outline: none;
+    }
+
+    .ct-chat-form input:focus {
+        border-color: #89afea;
+        box-shadow: 0 0 0 3px rgba(120, 164, 235, .18);
+    }
+
+    .ct-chat-form button {
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #2660d0, #1fa4c8);
+        cursor: pointer;
+    }
+    .ct-toast {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        background: #113568;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+        border: 1px solid rgba(255,255,255,.25);
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity .22s ease, transform .22s ease;
+        z-index: 999;
+    }
+
+    .ct-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @@media (max-width: 980px) {
+            .ct-wrap { grid-template-columns: 1fr; }
+    }
+
+    @@media (max-width: 640px) {
+        .ct-title { font-size: 28px; }
+        .ct-grid2 { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="ct-page">
+    <a class="ct-back-link" href="javascript:history.back()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Go Back</span>
+    </a>
+
+    <section class="ct-wrap">
+        <article class="ct-panel">
+            <h1 class="ct-title">Get in Touch with Us</h1>
+            <p class="ct-sub">Have questions, feedback, or need help with your event?<br />We&rsquo;re here to help you 24/7.</p>
+
+            <div class="ct-details">
+                <div class="ct-detail"><i class="bi bi-envelope-fill"></i><span><strong>Email:</strong> support@eventify.com</span></div>
+                <div class="ct-detail"><i class="bi bi-telephone-fill"></i><span><strong>Phone:</strong> +91 81602 53134</span></div>
+                <div class="ct-detail"><i class="bi bi-geo-alt-fill"></i><span><strong>Location:</strong> Jamnagar, Gujarat, India</span></div>
+                <div class="ct-detail"><i class="bi bi-clock-fill"></i><span><strong>Working Hours:</strong> Mon - Sat (10 AM - 10 PM)</span></div>
+            </div>
+
+            <div class="ct-socials" aria-label="Social links">
+                <a class="ct-social" href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                <a class="ct-social" href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                <a class="ct-social" href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                <a class="ct-social" href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            </div>
+        </article>
+
+        <article class="ct-panel">
+            <form id="contactForm" class="ct-form" action="#" method="post">
+                <div class="ct-grid2">
+                    <div class="ct-field">
+                        <label for="fullName">Full Name</label>
+                        <input id="fullName" name="fullName" type="text" placeholder="Enter your name" required />
+                    </div>
+                    <div class="ct-field">
+                        <label for="email">Email Address</label>
+                        <input id="email" name="email" type="email" placeholder="Enter your email" required />
+                    </div>
+                </div>
+
+                <div class="ct-field">
+                    <label for="subject">Subject</label>
+                    <select id="subject" name="subject">
+                        <option>General Query</option>
+                        <option>Technical Help</option>
+                        <option>Event Support</option>
+                        <option>Partnership</option>
+                    </select>
+                </div>
+
+                <div class="ct-field">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" placeholder="Write your message here..." required></textarea>
+                </div>
+
+                <button class="ct-submit" type="submit">Send Message</button>
+            </form>
+            </article>
+    </section>
+
+    <section class="ct-map">
+        <div class="ct-map-box">
+            <iframe class="ct-map-frame"
+                    title="Jamnagar map"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q=Jamnagar%2C%20Gujarat%2C%20India&z=13&output=embed"></iframe>
+            <span class="ct-map-label"><i class="bi bi-geo-alt-fill"></i> Jamnagar, Gujarat, India</span>
+        </div>
+        <div class="ct-map-actions">
+            <a class="ct-map-link" href="https://www.google.com/maps/search/?api=1&query=Jamnagar%2C%20Gujarat%2C%20India" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-map"></i>
+                <span>Open in Google Maps</span>
+            </a>
+            <a class="ct-map-link" href="https://www.google.com/maps/dir/?api=1&destination=Jamnagar%2C%20Gujarat%2C%20India" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-sign-turn-right"></i>
+                <span>Get Directions</span>
+            </a>
+        </div>
+    </section>
+</div>
+<div class="ct-toast" id="contactToast">Message sent successfully. Our team will contact you soon.</div>
+
+<script>
+    (function () {
+        var form = document.getElementById('contactForm');
+        var toast = document.getElementById('contactToast');
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            toast.classList.add('show');
+            window.setTimeout(function () {
+                toast.classList.remove('show');
+            }, 2200);
+            form.reset();
+        });
+    })();
+</script>

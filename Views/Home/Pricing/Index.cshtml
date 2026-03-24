@@ -1,0 +1,413 @@
+@{
+    ViewData["Title"] = "Pricing";
+}
+
+<style>
+    .pr-page {
+        --pr-border: #d6e4fa;
+        --pr-text: #173e6e;
+        --pr-sub: #5b7598;
+        max-width: 1120px;
+        margin: 24px auto 48px;
+        padding: 0 16px;
+        color: var(--pr-text);
+    }
+
+    .pr-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin: 0 0 12px;
+        border-radius: 999px;
+        border: 1px solid #c9dbf8;
+        background: #f6faff;
+        color: #1f4478;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .pr-back-link:hover {
+        transform: translateY(-1px);
+        border-color: #b7cff3;
+        box-shadow: 0 8px 18px rgba(31, 73, 138, .14);
+        color: #163a67;
+    }
+
+    .pr-back-link i { font-size: 13px; }
+
+    .pr-head {
+        text-align: center;
+        border: 1px solid #d5e2f8;
+        border-radius: 22px;
+        background: linear-gradient(145deg, #e8f1ff, #f7fbff);
+        padding: 22px 18px;
+    }
+
+    .pr-head h1 {
+        margin: 0;
+        font-size: 36px;
+        font-weight: 800;
+        color: #1b3f71;
+    }
+
+    .pr-head p {
+        margin: 8px 0 0;
+        font-size: 15px;
+        color: var(--pr-sub);
+    }
+
+    .pr-toggle-wrap {
+        display: flex;
+        justify-content: center;
+        margin: 14px 0;
+    }
+
+    .pr-toggle {
+        border: 1px solid #c9dbf7;
+        background: #fff;
+        border-radius: 999px;
+        padding: 4px;
+        display: inline-flex;
+        gap: 4px;
+        box-shadow: 0 10px 24px rgba(34, 84, 157, .1);
+    }
+
+    .pr-toggle button {
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #2a4f80;
+        background: transparent;
+        cursor: pointer;
+        transition: all .25s ease;
+    }
+
+    .pr-toggle button.active {
+        color: #fff;
+        background: linear-gradient(135deg, #2660d0, #21a4c8);
+        box-shadow: 0 8px 16px rgba(33, 95, 187, .3);
+    }
+
+    .pr-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .pr-card {
+        background: #fff;
+        border: 1px solid var(--pr-border);
+        border-radius: 18px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        position: relative;
+    }
+
+    .pr-card:hover {
+        transform: translateY(-4px);
+        border-color: #bdd2f8;
+        box-shadow: 0 16px 34px rgba(30, 85, 164, .16);
+    }
+
+    .pr-card.pro {
+        transform: scale(1.03);
+        border: 1px solid #9ec0f4;
+        background: linear-gradient(180deg, #ffffff, #f8fbff);
+        box-shadow: 0 14px 28px rgba(34, 95, 186, .2);
+    }
+
+    .pr-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+        color: #fff;
+        padding: 5px 9px;
+        background: linear-gradient(135deg, #ffb52c, #ff8b2a);
+    }
+
+    .pr-plan {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: #1c3f70;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .pr-price {
+        margin: 8px 0 4px;
+        font-size: 34px;
+        font-weight: 800;
+        color: #1f4d88;
+        line-height: 1.1;
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .pr-price.updating {
+        opacity: .55;
+        transform: translateY(2px);
+    }
+
+    .pr-best {
+        margin: 0 0 10px;
+        font-size: 13px;
+        color: var(--pr-sub);
+    }
+
+    .pr-features {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 14px;
+        display: grid;
+        gap: 8px;
+    }
+
+    .pr-features li {
+        font-size: 13px;
+        color: #406186;
+        padding-left: 18px;
+        position: relative;
+        line-height: 1.45;
+    }
+
+    .pr-features li::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        position: absolute;
+        left: 0;
+        top: 6px;
+        background: linear-gradient(135deg, #2c66d5, #20a2c6);
+    }
+
+    .pr-btn {
+        margin-top: auto;
+        text-decoration: none;
+        text-align: center;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #2560cf, #1fa1c6);
+        transition: background-position .25s ease, transform .2s ease, box-shadow .25s ease;
+        background-size: 180% 180%;
+        background-position: left center;
+    }
+
+    .pr-btn:hover {
+        transform: translateY(-1px);
+        background-position: right center;
+        box-shadow: 0 10px 20px rgba(32, 98, 189, .24);
+    }
+
+    .pr-mini-faq {
+        margin-top: 16px;
+        border: 1px solid #d5e3f8;
+        border-radius: 16px;
+        background: #fff;
+        padding: 14px;
+    }
+
+    .pr-mini-faq h2 {
+        margin: 0 0 10px;
+        font-size: 20px;
+        color: #1b3f71;
+    }
+
+    .pr-mini-faq ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+    }
+
+    .pr-mini-faq li {
+        font-size: 14px;
+        color: #3f5f86;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #e0e9fa;
+        background: #f9fcff;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .pr-mini-faq strong { color: #1e4377; }
+
+    .pr-cta {
+        margin-top: 14px;
+        text-align: center;
+        border: 1px solid #d4e2f8;
+        border-radius: 16px;
+        background: linear-gradient(150deg, #eef5ff, #f9fcff);
+        padding: 18px 14px;
+    }
+
+    .pr-cta h2 {
+        margin: 0;
+        font-size: 26px;
+        color: #1a3e70;
+    }
+
+    .pr-cta-actions {
+        margin-top: 10px;
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .pr-cta-actions a {
+        text-decoration: none;
+        border-radius: 999px;
+        padding: 9px 14px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .pr-cta-actions .solid { color: #fff; background: linear-gradient(135deg, #265fd0, #1ea4c8); }
+    .pr-cta-actions .soft { color: #214574; border: 1px solid #bfd3f2; background: #fff; }
+
+    @@media (max-width: 980px) {
+        .pr-grid { grid-template-columns: 1fr; }
+        .pr-card.pro { transform: none; }
+    }
+
+    @@media (max-width: 640px) {
+        .pr-head h1 { font-size: 29px; }
+    }
+</style>
+
+<div class="pr-page">
+    <a class="pr-back-link" href="javascript:history.back()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Go Back</span>
+    </a>
+
+    <section class="pr-head">
+        <h1>Simple, Transparent Pricing</h1>
+        <p>Choose the plan that fits your event needs - no hidden charges.</p>
+    </section>
+
+    <div class="pr-toggle-wrap">
+        <div class="pr-toggle" role="tablist" aria-label="Pricing interval">
+            <button class="active" id="monthlyBtn" type="button" data-mode="monthly" aria-selected="true">Monthly</button>
+            <button id="yearlyBtn" type="button" data-mode="yearly" aria-selected="false">Yearly</button>
+        </div>
+    </div>
+
+    <section class="pr-grid" id="pricingGrid">
+        <article class="pr-card">
+            <h2 class="pr-plan">Basic</h2>
+            <p class="pr-price" data-monthly="Free / &#8377;0" data-yearly="Free / &#8377;0">Free / &#8377;0</p>
+            <p class="pr-best">Best for: Small events / beginners</p>
+            <ul class="pr-features">
+                <li>Create up to 3 events</li>
+                <li>Basic event management</li>
+                <li>Limited ticket booking</li>
+                <li>Standard support</li>
+                <li>Basic analytics</li>
+            </ul>
+            <a class="pr-btn" href="/Auth/Register">Get Started</a>
+        </article>
+
+        <article class="pr-card pro">
+            <span class="pr-badge">Most Popular</span>
+            <h2 class="pr-plan">Pro &#11088;</h2>
+            <p class="pr-price" data-monthly="&#8377;499 / month" data-yearly="&#8377;4,999 / year">&#8377;499 / month</p>
+            <p class="pr-best">Best for: Growing organizers</p>
+            <ul class="pr-features">
+                <li>Unlimited events</li>
+                <li>Advanced booking system</li>
+                <li>Payment integration (UI)</li>
+                <li>Detailed analytics dashboard</li>
+                <li>Coupon and discount system</li>
+                <li>Priority support</li>
+            </ul>
+            <a class="pr-btn" href="/Auth/Register">Start Pro</a>
+        </article>
+
+        <article class="pr-card">
+            <h2 class="pr-plan">Enterprise</h2>
+            <p class="pr-price" data-monthly="Custom Pricing" data-yearly="Custom Pricing">Custom Pricing</p>
+            <p class="pr-best">Best for: Large organizations</p>
+            <ul class="pr-features">
+                <li>Unlimited everything</li>
+                <li>Dedicated account manager</li>
+                <li>Custom branding</li>
+                <li>Advanced reports and insights</li>
+                <li>API access (UI concept)</li>
+                <li>24/7 premium support</li>
+            </ul>
+            <a class="pr-btn" href="@Url.Action("Privacy", "Home")">Contact Us</a>
+        </article>
+    </section>
+
+    <section class="pr-mini-faq">
+        <h2>Pricing FAQ</h2>
+        <ul>
+            <li><span>Can I upgrade later?</span> <strong>Yes</strong></li>
+            <li><span>Is there a free trial?</span> <strong>Yes</strong></li>
+            <li><span>Do you charge commission?</span> <strong>Optional</strong></li>
+        </ul>
+    </section>
+
+    <section class="pr-cta">
+        <h2>Still not sure?</h2>
+        <div class="pr-cta-actions">
+            <a class="solid" href="@Url.Action("Privacy", "Home")">Contact Sales</a>
+            <a class="soft" href="/Auth/Register">Try Free Plan</a>
+        </div>
+    </section>
+</div>
+
+<script>
+    (function () {
+        var buttons = document.querySelectorAll('.pr-toggle button');
+        var prices = document.querySelectorAll('.pr-price');
+
+        function setMode(mode) {
+            buttons.forEach(function (button) {
+                var active = button.getAttribute('data-mode') === mode;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+
+            prices.forEach(function (price) {
+                price.classList.add('updating');
+                var nextValue = mode === 'yearly'
+                    ? price.getAttribute('data-yearly')
+                    : price.getAttribute('data-monthly');
+
+                window.setTimeout(function () {
+                    price.textContent = nextValue;
+                    price.classList.remove('updating');
+                }, 130);
+            });
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                setMode(button.getAttribute('data-mode'));
+            });
+        });
+    })();
+</script>
+
+
+

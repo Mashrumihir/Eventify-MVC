@@ -1,0 +1,52 @@
+@model Eventify.ViewModels.AdminEventModerationViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:58px;color:#1f3e76}.ad-sub{margin:10px 0 18px;font-size:34px;color:#6b7280}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+.ev .top{background:linear-gradient(90deg,#31529b,#2ca7cb);padding:26px;border-radius:16px 16px 0 0;color:#fff;font-size:58px;font-weight:800;text-align:center}
+.ev .body{padding:16px}.ev h3{font-size:42px;margin:0 0 4px;color:#1f3e76}.ev .org{font-size:30px;color:#667085}
+.ev .meta{font-size:30px;color:#4b5563;margin:8px 0}
+.status{float:right;color:#a16207;font-size:28px}
+.action{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.ic{width:48px;height:48px;border:0;border-radius:999px;color:#fff;font-size:24px}.ok{background:#0ea5e9}.no{background:#ef4444}
+@@media(max-width:1200px){.cards{grid-template-columns:1fr}.ad-title{font-size:40px}.ad-sub,.ev .org,.ev .meta,.status{font-size:20px}.ev h3{font-size:30px}}
+</style>
+}
+
+<h1 class="ad-title">Event Moderation</h1>
+<p class="ad-sub">Review, approve, and feature events on the platform.</p>
+
+<div class="pill-group">
+    <a class="pill @(Model.ActiveTab=="pending"?"active":"")" href="@Url.Action("EventModeration", new { status = "pending" })">Pending (@Model.PendingCount)</a>
+    <a class="pill @(Model.ActiveTab=="approved"?"active":"")" href="@Url.Action("EventModeration", new { status = "approved" })">Approved (@Model.ApprovedCount)</a>
+    <a class="pill @(Model.ActiveTab=="featured"?"active":"")" href="@Url.Action("EventModeration", new { status = "featured" })">Featured (@Model.FeaturedCount)</a>
+    <a class="pill @(Model.ActiveTab=="rejected"?"active":"")" href="@Url.Action("EventModeration", new { status = "rejected" })">Rejected (@Model.RejectedCount)</a>
+</div>
+
+<div class="cards">
+    @foreach (var e in Model.Events)
+    {
+        <article class="card ev">
+            <div class="top">@e.Initials</div>
+            <div class="body">
+                <span class="status">@e.Status</span>
+                <h3>@e.EventTitle</h3>
+                <div class="org">@e.OrganizerName</div>
+                <div class="meta"><i class="bi bi-calendar-event"></i> @e.EventDate.ToString("yyyy-MM-dd")</div>
+                <div class="meta"><i class="bi bi-geo-alt-fill"></i> @e.Location</div>
+                <div class="meta"><i class="bi bi-people-fill"></i> @e.Capacity capacity <strong style="float:right;color:#1f3e76;">?@e.Price</strong></div>
+                <div class="action">
+                    <button class="btn" type="button"><i class="bi bi-eye"></i> View</button>
+                    <div style="display:flex;gap:10px;">
+                        <form method="post" asp-action="DecideEvent">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@e.Id" /><input type="hidden" name="decision" value="approve" /><button class="ic ok" type="submit"><i class="bi bi-check-lg"></i></button></form>
+                        <form method="post" asp-action="DecideEvent">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@e.Id" /><input type="hidden" name="decision" value="reject" /><button class="ic no" type="submit"><i class="bi bi-x-lg"></i></button></form>
+                    </div>
+                </div>
+            </div>
+        </article>
+    }
+</div>

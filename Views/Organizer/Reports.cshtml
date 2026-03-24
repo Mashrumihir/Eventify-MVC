@@ -1,0 +1,29 @@
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "Reports";
+}
+
+@section PageStyles {
+<style>
+.rp-wrap{padding:24px}.rp-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}.rp-head h1{margin:0;font-size: 25px;font-weight:800}.rp-head p{margin:6px 0 0;color:#667085;font-size: 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:#fff;border:1px solid #d9dee6;border-radius:16px;padding:18px}.card .ico{width:50px;height:50px;border-radius:12px;background:linear-gradient(90deg,#2956d9,#18b8cc);display:flex;align-items:center;justify-content:center;color:#fff;font-size: 12px}
+.card h3{margin:12px 0 8px;font-size: 20px}.card p{margin:0 0 10px;color:#667085;font-size: 14px}.period{color:#667085;font-size: 13px;margin-bottom:12px}
+.btn{display:block;text-align:center;background:linear-gradient(90deg,#2956d9,#18b8cc);color:#fff;text-decoration:none;padding:10px;border-radius:10px;font-size: 14px}
+@@media(max-width:1100px){.grid{grid-template-columns:1fr}}
+</style>
+}
+
+<section class="rp-wrap">
+    <header class="rp-head">
+        <span class="ico" style="width:48px;height:48px"><i class="bi bi-bar-chart-line"></i></span>
+        <div><h1>Reports</h1><p>Generate and download comprehensive reports.</p></div>
+    </header>
+
+    <div class="grid">
+        <article class="card"><span class="ico"><i class="bi bi-cash"></i></span><h3>Sales Report</h3><p>Detailed breakdown of all sales and revenue</p><div class="period">Period: Last 30 days</div><a class="btn" href="#">Download Report</a></article>
+        <article class="card"><span class="ico"><i class="bi bi-graph-up"></i></span><h3>Event Performance</h3><p>Analytics for individual event performance</p><div class="period">Period: All time</div><a class="btn" href="#">Download Report</a></article>
+        <article class="card"><span class="ico"><i class="bi bi-people"></i></span><h3>Customer Insights</h3><p>Attendee demographics and behavior</p><div class="period">Period: Last 90 days</div><a class="btn" href="#">Download Report</a></article>
+        <article class="card"><span class="ico"><i class="bi bi-receipt"></i></span><h3>Financial Summary</h3><p>Complete financial overview and statements</p><div class="period">Period: Last 12 months</div><a class="btn" href="#">Download Report</a></article>
+    </div>
+</section>
+

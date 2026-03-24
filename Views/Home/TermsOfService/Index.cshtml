@@ -1,0 +1,433 @@
+@{
+    ViewData["Title"] = "Terms of Service";
+}
+
+<style>
+    .tos-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0;
+        background: linear-gradient(90deg, #2e66d4, #d09a25);
+        z-index: 1000;
+        transition: width .12s linear;
+    }
+
+    .tos-page {
+        --tos-text: #193f70;
+        --tos-sub: #5c7698;
+        --tos-border: #d5e3f8;
+        --tos-gold: #d09a25;
+        max-width: 1140px;
+        margin: 16px auto 48px;
+        padding: 0 16px;
+        color: var(--tos-text);
+    }
+
+    .tos-nav {
+        border: 1px solid var(--tos-border);
+        border-radius: 16px;
+        padding: 10px 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .tos-brand {
+        color: #1d4478;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 18px;
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .tos-nav-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tos-nav-links a {
+        text-decoration: none;
+        color: #2a507f;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .tos-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin: 0 0 12px;
+        border-radius: 999px;
+        border: 1px solid #c9dbf8;
+        background: #f6faff;
+        color: #1f4478;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .tos-back-link:hover {
+        transform: translateY(-1px);
+        border-color: #b7cff3;
+        box-shadow: 0 8px 18px rgba(31, 73, 138, .14);
+        color: #163a67;
+    }
+
+    .tos-back-link i { font-size: 13px; }
+
+    .tos-header {
+        border: 1px solid var(--tos-border);
+        border-radius: 20px;
+        padding: 20px;
+        background: linear-gradient(145deg, #e8f1ff, #f8fbff);
+    }
+
+    .tos-header h1 {
+        margin: 0;
+        font-size: 36px;
+        font-weight: 800;
+        color: #1d4274;
+    }
+
+    .tos-header p {
+        margin: 8px 0 0;
+        color: var(--tos-sub);
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    .tos-updated {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #7d6a3c;
+        border: 1px solid #f0d79b;
+        background: #fff9ea;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-weight: 700;
+    }
+
+    .tos-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .tos-sidebar {
+        position: sticky;
+        top: 14px;
+        align-self: start;
+        border: 1px solid var(--tos-border);
+        border-radius: 14px;
+        background: #fff;
+        padding: 12px;
+    }
+
+    .tos-sidebar h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        color: #214879;
+    }
+
+    .tos-sidebar a {
+        display: block;
+        text-decoration: none;
+        color: #45658b;
+        font-size: 13px;
+        border-radius: 9px;
+        padding: 7px 8px;
+    }
+
+    .tos-sidebar a:hover {
+        background: #f4f8ff;
+        color: #224b7f;
+    }
+
+    .tos-content {
+        border: 1px solid var(--tos-border);
+        border-radius: 16px;
+        background: #fff;
+        padding: 14px;
+    }
+
+    .tos-sec {
+        padding: 10px 4px 14px;
+        border-bottom: 1px solid #e5eefc;
+    }
+
+    .tos-sec:last-child { border-bottom: 0; }
+
+    .tos-sec h2 {
+        margin: 0;
+        font-size: 21px;
+        color: #1e4376;
+        font-weight: 800;
+    }
+
+    .tos-sec p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: #46678d;
+        line-height: 1.75;
+    }
+
+    .tos-sec ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+        color: #46678d;
+    }
+
+    .tos-sec li {
+        margin: 4px 0;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .tos-highlight {
+        color: var(--tos-gold);
+        font-weight: 700;
+    }
+
+    .tos-contact {
+        margin-top: 12px;
+        border: 1px solid #d5e3f8;
+        border-radius: 14px;
+        background: linear-gradient(150deg, #eef5ff, #f9fcff);
+        padding: 12px;
+    }
+
+    .tos-contact h3 {
+        margin: 0 0 8px;
+        color: #1f4578;
+        font-size: 18px;
+    }
+
+    .tos-contact p {
+        margin: 4px 0;
+        color: #4b6e92;
+        font-size: 14px;
+    }
+
+    .tos-footer {
+        margin-top: 14px;
+        border: 1px solid var(--tos-border);
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: #0f2550;
+        color: #dbe6ff;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        flex-wrap: wrap;
+    }
+
+    .tos-footer a { color: #c8d8fa; text-decoration: none; }
+
+    .tos-top-btn {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid #bcd2f5;
+        background: #fff;
+        color: #1f4f89;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(26, 71, 138, .2);
+        text-decoration: none;
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity .2s ease, transform .2s ease;
+        z-index: 999;
+    }
+
+    .tos-top-btn.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    @@media (max-width: 980px) {
+        .tos-layout { grid-template-columns: 1fr; }
+        .tos-sidebar { position: static; }
+    }
+
+    @@media (max-width: 640px) {
+        .tos-header h1 { font-size: 30px; }
+        .tos-nav { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+
+<div class="tos-progress" id="tosProgress"></div>
+
+<div class="tos-page" id="tosTop">
+<a class="tos-back-link" href="javascript:history.back()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Go Back</span>
+    </a>
+
+    <header class="tos-header">
+        <h1>Terms of Service</h1>
+        <p>By accessing or using Eventify, you agree to comply with and be bound by these Terms of Service. Please read them carefully before using the platform.</p>
+        <span class="tos-updated">Last Updated: March 2026</span>
+    </header>
+
+    <div class="tos-layout">
+        <aside class="tos-sidebar">
+            <h3>Section Navigation</h3>
+            <a href="#tos1">1. Use of the Platform</a>
+            <a href="#tos2">2. User Accounts</a>
+            <a href="#tos3">3. Event Creation (Organizers)</a>
+            <a href="#tos4">4. Ticket Booking &amp; Payments</a>
+            <a href="#tos5">5. Cancellation &amp; Refund Policy</a>
+            <a href="#tos6">6. Prohibited Activities</a>
+            <a href="#tos7">7. Intellectual Property</a>
+            <a href="#tos8">8. Limitation of Liability</a>
+            <a href="#tos9">9. Termination of Access</a>
+            <a href="#tos10">10. Changes to Terms</a>
+            <a href="#tos11">11. Contact Information</a>
+        </aside>
+
+        <main class="tos-content">
+            <section class="tos-sec" id="tos1">
+                <h2>1. Use of the Platform</h2>
+                <ul>
+                    <li>You must be at least 18 years old or use the platform under supervision.</li>
+                    <li>You agree to use Eventify only for lawful purposes.</li>
+                    <li>Any misuse of the platform may result in account suspension.</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos2">
+                <h2>2. User Accounts</h2>
+                <ul>
+                    <li>Users are responsible for maintaining the confidentiality of their login credentials.</li>
+                    <li>You agree to provide accurate and complete information during registration.</li>
+                    <li>Eventify is not responsible for unauthorized access due to user negligence.</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos3">
+                <h2>3. Event Creation (Organizers)</h2>
+                <ul>
+                    <li>Organizers are responsible for the accuracy of event details.</li>
+                    <li>Eventify is not liable for cancellations, delays, or changes made by organizers.</li>
+                    <li>Organizers must comply with all applicable laws and regulations.</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos4">
+                <h2>4. Ticket Booking &amp; Payments</h2>
+                <ul>
+                    <li>All bookings are subject to availability.</li>
+                    <li>Payments are processed through secure third-party providers (UI simulation in this project).</li>
+                    <li>Refunds depend on the event organizer&rsquo;s refund policy.</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos5">
+                <h2>5. Cancellation &amp; Refund Policy</h2>
+                <ul>
+                    <li>Users may cancel bookings based on event-specific rules.</li>
+                    <li>Refund timelines and eligibility are defined by organizers.</li>
+                    <li>Eventify acts as a platform and does not guarantee refunds.</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos6">
+                <h2>6. Prohibited Activities</h2>
+                <p>Users must <span class="tos-highlight">NOT</span>:</p>
+                <ul>
+                    <li>Use the platform for fraudulent activities</li>
+                    <li>Upload false or misleading event information</li>
+                    <li>Attempt to hack or disrupt the system</li>
+                    <li>Violate any applicable laws</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos7">
+                <h2>7. Intellectual Property</h2>
+                <p>All content, design, and branding of Eventify are protected and cannot be copied or reused without permission.</p>
+            </section>
+
+            <section class="tos-sec" id="tos8">
+                <h2>8. Limitation of Liability</h2>
+                <p>Eventify is not responsible for:</p>
+                <ul>
+                    <li>Event cancellations or changes</li>
+                    <li>Losses due to third-party services</li>
+                    <li>Technical issues beyond our control</li>
+                </ul>
+            </section>
+
+            <section class="tos-sec" id="tos9">
+                <h2>9. Termination of Access</h2>
+                <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+            </section>
+
+            <section class="tos-sec" id="tos10">
+                <h2>10. Changes to Terms</h2>
+                <p>Eventify may update these Terms at any time. Continued use of the platform implies acceptance of updated terms.</p>
+            </section>
+
+            <section class="tos-sec" id="tos11">
+                <h2>11. Contact Information</h2>
+                <p>For any questions regarding these Terms:</p>
+                <ul>
+                    <li><span class="tos-highlight">support@eventify.com</span></li>
+                    <li>Ahmedabad, India</li>
+                </ul>
+            </section>
+
+            <section class="tos-contact">
+                <h3>Contact Info</h3>
+                <p>?? support@eventify.com</p>
+                <p>?? Ahmedabad, India</p>
+            </section>
+        </main>
+    </div>
+</div>
+
+<a class="tos-top-btn" id="tosTopBtn" href="#tosTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></a>
+
+<script>
+    (function () {
+        var progress = document.getElementById('tosProgress');
+        var topBtn = document.getElementById('tosTopBtn');
+
+        function handleScroll() {
+            var doc = document.documentElement;
+            var total = doc.scrollHeight - doc.clientHeight;
+            var scrolled = total > 0 ? (doc.scrollTop / total) * 100 : 0;
+            progress.style.width = scrolled + '%';
+
+            if (doc.scrollTop > 260) {
+                topBtn.classList.add('show');
+            } else {
+                topBtn.classList.remove('show');
+            }
+        }
+
+        document.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+    })();
+</script>
+
+
