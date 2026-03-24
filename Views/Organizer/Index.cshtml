@@ -1,0 +1,287 @@
+@model Eventify.ViewModels.OrganizerDashboardViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "Organizer Dashboard";
+    var salesMax = Math.Max(1, Model.SalesSeries.DefaultIfEmpty(1).Max());
+    var revenueMax = Math.Max(1, Model.RevenueSeries.DefaultIfEmpty(1).Max());
+    var chartMax = Math.Max(salesMax, revenueMax);
+    string BuildPolyline(IReadOnlyList<int> values)
+    {
+        if (values.Count == 0)
+        {
+            return "30,210 510,210";
+        }
+
+        const double startX = 30;
+        const double endX = 510;
+        const double baseY = 230;
+        const double topY = 50;
+        var step = values.Count == 1 ? 0 : (endX - startX) / (values.Count - 1);
+        var points = new List<string>(values.Count);
+        for (var i = 0; i < values.Count; i++)
+        {
+            var normalized = chartMax == 0 ? 0 : (double)values[i] / chartMax;
+            var y = baseY - (normalized * (baseY - topY));
+            var x = startX + (step * i);
+            points.Add($"{x:0},{y:0}");
+        }
+
+        return string.Join(" ", points);
+    }
+
+    var salesPoints = BuildPolyline(Model.SalesSeries);
+    var revenuePoints = BuildPolyline(Model.RevenueSeries);
+    string GrowthText(decimal value) => $"{(value >= 0 ? "+" : "")}{value:0.0}%";
+    var dayNames = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    List<(double x, double y, int value)> BuildChartPoints(IReadOnlyList<int> values)
+    {
+        var output = new List<(double x, double y, int value)>();
+        if (values.Count == 0)
+        {
+            return output;
+        }
+
+        const double startX = 30;
+        const double endX = 510;
+        const double baseY = 230;
+        const double topY = 50;
+        var step = values.Count == 1 ? 0 : (endX - startX) / (values.Count - 1);
+        for (var i = 0; i < values.Count; i++)
+        {
+            var normalized = chartMax == 0 ? 0 : (double)values[i] / chartMax;
+            var y = baseY - (normalized * (baseY - topY));
+            var x = startX + (step * i);
+            output.Add((x, y, values[i]));
+        }
+
+        return output;
+    }
+
+    var salesChartPoints = BuildChartPoints(Model.SalesSeries);
+    var revenueChartPoints = BuildChartPoints(Model.RevenueSeries);
+}
+
+@section PageStyles {
+    <style>
+        .od-wrap { padding: 18px 20px 24px; }
+        .od-head h1 { margin: 0; font-size: 23px; color: #111827; font-weight: 800; }
+        .od-head p { margin: 6px 0 16px; color: #64748b; font-size: 16px; }
+        .od-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+        .od-card { background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 14px; position: relative; }
+        .od-card.blue { border-top: 4px solid #3b82f6; }
+        .od-card.purple { border-top: 4px solid #a855f7; }
+        .od-card.green { border-top: 4px solid #22c55e; }
+        .od-card.orange { border-top: 4px solid #f97316; }
+        .od-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; margin-bottom: 8px; }
+        .od-icon.blue { background: #3b82f6; }
+        .od-icon.purple { background: #a855f7; }
+        .od-icon.green { background: #22c55e; }
+        .od-icon.orange { background: #f97316; }
+        .od-growth { position: absolute; right: 12px; top: 12px; color: #22c55e; font-size: 15px; font-weight: 700; }
+        .od-card h3 { margin: 0; font-size: 22px; color: #111827; font-weight: 800; }
+        .od-card p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
+
+        .od-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .od-panel { background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px; }
+        .od-panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
+        .od-line-wrap { height: 300px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; padding: 10px; }
+        .od-line-svg { width: 100%; height: 100%; display: block; touch-action: manipulation; }
+        .od-line-dot { cursor: pointer; }
+        .od-legend { display: flex; gap: 16px; margin-top: 10px; color: #64748b; font-size: 13px; }
+        .od-dot { width: 18px; height: 3px; border-radius: 999px; display: inline-block; margin-right: 6px; vertical-align: middle; }
+        .od-dot.blue { background: #3b82f6; }
+        .od-dot.green { background: #14b8a6; }
+        .od-tooltip {
+            position: fixed;
+            z-index: 30;
+            background: #111827;
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.35;
+            box-shadow: 0 10px 24px rgba(17, 24, 39, 0.24);
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, calc(-100% - 12px));
+            transition: opacity .15s ease;
+            white-space: nowrap;
+        }
+        .od-tooltip.show { opacity: 1; }
+        .od-tooltip::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            width: 10px;
+            height: 10px;
+            background: #111827;
+            transform: translateX(-50%) rotate(45deg);
+            border-radius: 1px;
+        }
+
+        .od-chart { height: 300px; display: flex; align-items: flex-end; gap: 12px; padding: 8px 8px 30px; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 10px 6px 0; position: relative; }
+        .od-bars .bar { width: 52px; background: #3b82f6; border-radius: 8px 8px 0 0; position: relative; cursor: pointer; }
+        .od-chart .label { position: absolute; bottom: -24px; transform: translateX(-50%); color: #64748b; font-size: 12px; }
+
+        .od-table-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; }
+        .od-table-wrap h2 { margin: 0 0 10px; font-size: 16px; font-weight: 800; }
+        .od-table { width: 100%; border-collapse: collapse; }
+        .od-table th, .od-table td { text-align: left; border-top: 1px solid #e5e7eb; padding: 10px 8px; font-size: 14px; color: #334155; }
+        .od-table th { border-top: 0; color: #64748b; }
+        .od-table .amount { font-weight: 800; color: #111827; }
+        .od-table .time { color: #6b7280; }
+
+        @@media (max-width: 1200px) {
+            .od-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .od-grid { grid-template-columns: 1fr; }
+            .od-head h1 { font-size: 17px; }
+            .od-head p { font-size: 12px; }
+            .od-card h3 { font-size: 12px; }
+        }
+    </style>
+}
+
+<section class="od-wrap">
+    <header class="od-head">
+        <h1>Organizer Dashboard</h1>
+        <p>Welcome back! Here's your event overview.</p>
+    </header>
+
+    <div class="od-stats">
+        <article class="od-card blue"><span class="od-growth">@GrowthText(Model.RevenueGrowth)</span><span class="od-icon blue"><i class="bi bi-currency-rupee"></i></span><h3>&#8377;@Model.TotalRevenue.ToString("0,0")</h3><p>Total Revenue</p></article>
+        <article class="od-card purple"><span class="od-growth">@GrowthText(Model.TicketsGrowth)</span><span class="od-icon purple"><i class="bi bi-ticket-perforated"></i></span><h3>@Model.TicketsSold.ToString("0,0")</h3><p>Tickets Sold</p></article>
+        <article class="od-card green"><span class="od-growth">@GrowthText(Model.EventsGrowth)</span><span class="od-icon green"><i class="bi bi-calendar2-event"></i></span><h3>@Model.TotalEvents</h3><p>Total Events</p></article>
+        <article class="od-card orange"><span class="od-growth">@GrowthText(Model.ConversionGrowth)</span><span class="od-icon orange"><i class="bi bi-graph-up-arrow"></i></span><h3>@Model.ConversionRate.ToString("0.0")%</h3><p>Conversion Rate</p></article>
+    </div>
+
+    <div class="od-grid">
+        <article class="od-panel">
+            <h2>Sales Chart</h2>
+            <div class="od-line-wrap">
+                <svg class="od-line-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
+                    <polyline fill="none" stroke="#3b82f6" stroke-width="4" points="@salesPoints" />
+                    <polyline fill="none" stroke="#14b8a6" stroke-width="4" points="@revenuePoints" />
+                    @for (var i = 0; i < salesChartPoints.Count; i++)
+                    {
+                        var point = salesChartPoints[i];
+                        var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
+                        <circle class="od-line-dot"
+                                cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                r="6"
+                                fill="#3b82f6"
+                                data-tip-title="Sales"
+                                data-tip-date="@label"
+                                data-tip-value="@point.value" />
+                    }
+                    @for (var i = 0; i < revenueChartPoints.Count; i++)
+                    {
+                        var point = revenueChartPoints[i];
+                        var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
+                        <circle class="od-line-dot"
+                                cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                r="6"
+                                fill="#14b8a6"
+                                data-tip-title="Revenue"
+                                data-tip-date="@label"
+                                data-tip-value="@point.value" />
+                    }
+                </svg>
+            </div>
+            <div class="od-legend"><span><i class="od-dot blue"></i>Sales</span><span><i class="od-dot green"></i>Revenue</span></div>
+        </article>
+
+        <article class="od-panel">
+            <h2>Visitors Chart</h2>
+            <div class="od-chart od-bars">
+                @{
+                    var max = Math.Max(1, Model.VisitorsSeries.DefaultIfEmpty(1).Max());
+                    for (var i = 0; i < dayNames.Length; i++)
+                    {
+                        var value = i < Model.VisitorsSeries.Count ? Model.VisitorsSeries[i] : 0;
+                        var dateLabel = i < Model.DateLabels.Count ? Model.DateLabels[i] : dayNames[i];
+                        var h = (int)Math.Round((value * 220.0) / max);
+                        <div class="bar"
+                             style="height:@(h)px;"
+                             data-tip-title="Visitors"
+                             data-tip-date="@dateLabel"
+                             data-tip-value="@value">
+                            <span class="label" style="left:24px;">@dayNames[i]</span>
+                        </div>
+                    }
+                }
+            </div>
+        </article>
+    </div>
+
+    <section class="od-table-wrap">
+        <h2>Recent Activity</h2>
+        <table class="od-table">
+            <thead>
+                <tr><th>Event</th><th>User</th><th>Action</th><th>Amount</th><th>Time</th></tr>
+            </thead>
+            <tbody>
+                @if (Model.RecentActivity.Count == 0)
+                {
+                    <tr><td colspan="5" style="color:#64748b;">No recent activity.</td></tr>
+                }
+                else
+                {
+                    @foreach (var a in Model.RecentActivity)
+                    {
+                        <tr>
+                            <td>@a.EventName</td>
+                            <td>@a.UserName</td>
+                            <td>@a.ActionText</td>
+                            <td class="amount">&#8377;@a.Amount.ToString("0,0")</td>
+                            <td class="time">@a.TimeAgo</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </section>
+</section>
+
+<div id="odTooltip" class="od-tooltip"></div>
+
+@section Scripts {
+<script>
+(() => {
+    const tooltip = document.getElementById("odTooltip");
+    if (!tooltip) return;
+
+    const targets = Array.from(document.querySelectorAll(".od-line-dot, .od-bars .bar"));
+    if (targets.length === 0) return;
+
+    const hide = () => tooltip.classList.remove("show");
+    const show = (target) => {
+        const title = target.getAttribute("data-tip-title") || "Bookings";
+        const date = target.getAttribute("data-tip-date") || "";
+        const value = target.getAttribute("data-tip-value") || "0";
+        tooltip.innerHTML = `<strong>${title}</strong><br>${date}<br>Bookings: ${value}`;
+        const rect = target.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+        tooltip.style.top = `${rect.top}px`;
+        tooltip.classList.add("show");
+    };
+
+    targets.forEach((target) => {
+        target.addEventListener("mouseenter", () => show(target));
+        target.addEventListener("focus", () => show(target));
+        target.addEventListener("click", () => show(target));
+        target.addEventListener("touchstart", () => show(target), { passive: true });
+        target.addEventListener("mouseleave", hide);
+        target.addEventListener("blur", hide);
+        target.addEventListener("touchend", () => setTimeout(hide, 1200), { passive: true });
+    });
+
+    document.addEventListener("scroll", hide, true);
+    window.addEventListener("resize", hide);
+})();
+</script>
+}
+

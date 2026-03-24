@@ -1,0 +1,101 @@
+@model Eventify.ViewModels.OrganizerAnnouncementsViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "Announcements";
+}
+
+@section PageStyles {
+<style>
+.an-wrap{padding:24px}.an-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}.an-title{display:flex;gap:12px}.an-title h1{margin:0;font-size:25px;font-weight:800}.an-title p{margin:6px 0 0;color:#667085;font-size:14px}
+.new-btn{background:linear-gradient(90deg,#3b82f6,#22c5dc);color:#fff;text-decoration:none;border-radius:12px;padding:10px 18px;font-size:13px;border:0;cursor:pointer}
+.form{background:#fff;border:1px solid #d9dee6;border-radius:18px;padding:18px;margin-bottom:16px}.form h2{margin:0 0 12px;font-size:21px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.field label{font-size:12px}.field input,.field textarea,.field select{border:1px solid #cfd4dc;border-radius:10px;padding:10px 12px;font-size:13px}.field textarea{min-height:120px}
+.form.hidden{display:none}
+.actions{display:flex;justify-content:flex-end;gap:10px}.btn{border:1px solid #cfd4dc;border-radius:10px;background:#fff;color:#344054;padding:9px 16px;font-size:13px}.btn.primary{border:0;background:linear-gradient(90deg,#3b82f6,#22c5dc);color:#fff}
+.list{display:grid;gap:12px}.item{background:#fff;border:1px solid #d9dee6;border-radius:16px;padding:16px;display:grid;grid-template-columns:52px 1fr;gap:12px}.icon{width:52px;height:52px;border-radius:12px;background:linear-gradient(90deg,#2956d9,#18b8cc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}.item h3{margin:0;font-size:19px}.meta{color:#667085;font-size:14px;margin:4px 0}.msg{font-size:14px;color:#344054;line-height:1.4}
+.empty{background:#fff;border:1px dashed #cbd5e1;border-radius:16px;padding:20px;color:#64748b}
+@@media(max-width:900px){.an-wrap{padding:16px}.an-head{flex-direction:column;gap:12px}.new-btn{align-self:flex-start}.item{grid-template-columns:40px 1fr}.icon{width:40px;height:40px}}
+</style>
+}
+
+<section class="an-wrap">
+    <header class="an-head">
+        <div class="an-title">
+            <span class="icon"><i class="bi bi-megaphone"></i></span>
+            <div><h1>Announcements</h1><p>Send updates and notifications to attendees.</p></div>
+        </div>
+        <button id="openAnnouncementFormBtn" type="button" class="new-btn"><i class="bi bi-plus-lg"></i> New Announcement</button>
+    </header>
+
+    <form id="new" class="form hidden" method="post" asp-action="CreateAnnouncement">
+        @Html.AntiForgeryToken()
+        <h2>Create Announcement</h2>
+        <div class="field"><label>Title</label><input asp-for="Title" placeholder="Announcement title" /></div>
+        <div class="field">
+            <label>Event</label>
+            <select asp-for="EventItemId">
+                <option value="">Select or type event name</option>
+                @foreach (var e in Model.Events)
+                {
+                    <option value="@e.Id">@e.Title</option>
+                }
+            </select>
+        </div>
+        <div class="field"><label>Message</label><textarea asp-for="Message" placeholder="Type your announcement message..."></textarea></div>
+        <div class="actions">
+            <button id="cancelAnnouncementFormBtn" class="btn" type="button">Cancel</button>
+            <button id="sendAnnouncementBtn" class="btn primary" type="submit"><i class="bi bi-send"></i> Send Announcement</button>
+        </div>
+    </form>
+
+    <div class="list">
+        @if (Model.Announcements.Count == 0)
+        {
+            <div class="empty">No announcements yet. Create one using the form above.</div>
+        }
+        else
+        {
+            @foreach (var item in Model.Announcements)
+            {
+                <article class="item">
+                    <span class="icon"><i class="bi bi-send"></i></span>
+                    <div>
+                        <h3>@item.Title</h3>
+                        <div class="meta">@item.EventTitle &bull; @item.Date.ToString("MMM d, yyyy")</div>
+                        <div class="msg">@item.Message</div>
+                    </div>
+                </article>
+            }
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(() => {
+    const openBtn = document.getElementById('openAnnouncementFormBtn');
+    const form = document.getElementById('new');
+    const cancelBtn = document.getElementById('cancelAnnouncementFormBtn');
+    if (!openBtn || !form || !cancelBtn) return;
+
+    const setOpen = (isOpen) => {
+        form.classList.toggle('hidden', !isOpen);
+        openBtn.innerHTML = isOpen
+            ? '<i class="bi bi-x-lg"></i> Close'
+            : '<i class="bi bi-plus-lg"></i> New Announcement';
+
+        if (isOpen) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    openBtn.addEventListener('click', () => {
+        setOpen(form.classList.contains('hidden'));
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        form.reset();
+        setOpen(false);
+    });
+})();
+</script>
+}

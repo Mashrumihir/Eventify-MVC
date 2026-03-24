@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Eventify</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: #dfe4ec; color: #1f2937; }
+        .org-shell { min-height: 100vh; display: grid; grid-template-columns: 216px minmax(0,1fr); }
+        .org-side { background: linear-gradient(180deg, #1f2d8a, #22a8c5); color: #dbeafe; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.15); position: sticky; top: 0; height: 100vh; }
+        .org-brand { padding: 14px 16px; font-size: 22px; font-weight: 800; line-height: 1.15; color: #fff; border-bottom: 1px solid rgba(255,255,255,.15); }
+        .org-nav { padding: 10px 10px 0 10px; display: flex; flex-direction: column; gap: 6px; height: calc(100vh - 103px); overflow-y: auto; overflow-x: hidden; }
+        .org-nav a { color: #dbeafe; text-decoration: none; border-radius: 10px; padding: 11px 12px; display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 1.2; }
+        .org-nav a.active { background: rgba(255,255,255,.2); color: #fff; }
+        .org-nav a.logout {
+            margin-top: auto;
+            margin-bottom: 0;
+            background: transparent;
+            color: #ff4d5a;
+            border: 0;
+        }
+        .org-nav a.logout:hover {
+            background: rgba(255, 77, 90, 0.12);
+            color: #ff4d5a;
+        }
+
+        .org-main { min-width: 0; overflow-x: auto; }
+
+        .org-nav i { font-size: 15px; }
+
+        @@media (max-width: 1200px) {
+            .org-shell { grid-template-columns: 190px minmax(0,1fr); }
+            .org-brand { font-size: 20px; padding: 12px 14px; }
+            .org-nav a { font-size: 14px; }
+        }
+
+        @@media (max-width: 920px) {
+            .org-shell { grid-template-columns: 1fr; }
+            .org-side { position: sticky; top: 0; z-index: 5; }
+            .org-nav { height: auto; }
+        }
+    </style>
+    @await RenderSectionAsync("PageStyles", required: false)
+</head>
+<body>
+    @{
+        var nav = (ViewData["OrgNav"]?.ToString() ?? string.Empty).ToLowerInvariant();
+        string Active(string key) => nav == key ? "active" : string.Empty;
+    }
+
+    <div class="org-shell">
+        <aside class="org-side">
+            <div class="org-brand">Event Organizer</div>
+            <nav class="org-nav">
+                <a class="@Active("dashboard")" href="@Url.Action("Dashboard", "Organizer")"><i class="bi bi-graph-up"></i>Dashboard</a>
+                <a class="@Active("create")" href="@Url.Action("CreateEvent", "Organizer")"><i class="bi bi-plus-lg"></i>Create Event</a>
+                <a class="@Active("manage")" href="@Url.Action("ManageEvents", "Organizer")"><i class="bi bi-calendar3"></i>Manage Events</a>
+                <a class="@Active("bookings")" href="@Url.Action("Bookings", "Organizer")"><i class="bi bi-ticket-perforated"></i>Bookings</a>
+                <a class="@Active("payments")" href="@Url.Action("Payments", "Organizer")"><i class="bi bi-credit-card"></i>Payments</a>
+                <a class="@Active("announcements")" href="@Url.Action("Announcements", "Organizer")"><i class="bi bi-megaphone"></i>Announcements</a>
+                <a class="@Active("profile")" href="@Url.Action("ProfileSettings", "Organizer")"><i class="bi bi-person-fill"></i>Profile</a>
+                <a class="logout" href="/Auth/Logout"><i class="bi bi-box-arrow-right"></i>Logout</a>
+            </nav>
+        </aside>
+
+        <main class="org-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

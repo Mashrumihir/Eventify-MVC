@@ -1,0 +1,109 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var activeNav = (ViewData["AttendNav"] as string ?? "").ToLowerInvariant();
+    var displayName = Context.Session.GetString("UserFullName") ?? "Attend User";
+    var photoPath = Context.Session.GetString("UserPhotoPath") ?? string.Empty;
+    var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = parts.Length switch
+    {
+        0 => "AU",
+        1 => parts[0].Length >= 2 ? parts[0][..2].ToUpperInvariant() : parts[0].ToUpperInvariant(),
+        _ => $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant()
+    };
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Eventify</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: #eef0f4; color: #1f2937; }
+        .at-shell { min-height: 100vh; }
+        .at-sidebar {
+            background: #f7f8fa;
+            border-right: 1px solid #e4e7ec;
+            padding: 14px 12px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 214px;
+            overflow-y: auto;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+        }
+        .at-brand { display: flex; align-items: center; gap: 9px; font-size: 18px; font-weight: 800; color: #1f2937; margin-bottom: 14px; text-decoration: none; }
+        .at-brand i { color: #2f6bf4; font-size: 18px; }
+        .at-nav { display: flex; flex-direction: column; gap: 7px; margin-top: 6px; flex: 1; }
+        .at-nav a { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 999px; color: #24364f; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .at-nav a i { font-size: 15px; }
+        .at-nav a.active { color: #fff; background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+        .at-nav a.logout { color: #ff3f55; margin-top: auto; }
+        .at-main { min-width: 0; min-height: 100vh; margin-left: 214px; }
+        .at-topbar {
+            height: 58px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f7f8fa;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 18px;
+            position: sticky;
+            top: 0;
+            z-index: 35;
+        }
+        .at-user { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+        .at-avatar { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #111827; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+        .at-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        @@media (max-width: 860px) {
+            .at-sidebar { position: static; width: auto; border-right: 0; border-bottom: 1px solid #e4e7ec; }
+            .at-main { margin-left: 0; }
+            .at-nav a { font-size: 14px; }
+        }
+    </style>
+    @await RenderSectionAsync("PageStyles", required: false)
+</head>
+<body>
+    <div class="at-shell">
+        <aside class="at-sidebar">
+            <a class="at-brand" href="#"><i class="bi bi-star-fill"></i><span>Eventify</span></a>
+            <nav class="at-nav">
+                <a class="@(activeNav == "dashboard" ? "active" : "")" href="/Attend/Dashboard"><i class="bi bi-house-door"></i>Dashboard</a>
+                <a class="@(activeNav == "browse" ? "active" : "")" href="/Attend/BrowseEvents"><i class="bi bi-calendar-event"></i>Browse Events</a>
+                <a class="@(activeNav == "bookings" ? "active" : "")" href="/Attend/MyBookings"><i class="bi bi-ticket-perforated"></i>My Bookings</a>
+                <a class="@(activeNav == "payments" ? "active" : "")" href="/Attend/Payments"><i class="bi bi-credit-card"></i>Payments</a>
+                <a class="@(activeNav == "wishlist" ? "active" : "")" href="/Attend/Wishlist"><i class="bi bi-bookmark"></i>Wishlist</a>
+                <a class="@(activeNav == "notifications" ? "active" : "")" href="/Attend/Notifications"><i class="bi bi-bell"></i>Notifications</a>
+                <a class="@(activeNav == "reviews" ? "active" : "")" href="/Attend/Reviews"><i class="bi bi-star"></i>Reviews</a>
+                <a class="@(activeNav == "profile" ? "active" : "")" href="/Attend/ProfileSettings"><i class="bi bi-gear"></i>Profile Settings</a>
+                <a class="logout" href="/Auth/Logout"><i class="bi bi-box-arrow-right"></i>Logout</a>
+            </nav>
+        </aside>
+
+        <main class="at-main">
+            <header class="at-topbar">
+                <div class="at-user">
+                    <span class="at-avatar">
+                        @if (!string.IsNullOrWhiteSpace(photoPath))
+                        {
+                            <img src="@photoPath" alt="Profile" />
+                        }
+                        else
+                        {
+                            @initials
+                        }
+                    </span>
+                    <span>@displayName <i class="bi bi-chevron-down"></i></span>
+                </div>
+            </header>
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

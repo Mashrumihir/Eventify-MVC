@@ -1,0 +1,252 @@
+@{
+    ViewData["Title"] = "Partner Events";
+}
+
+<style>
+    .pe-page {
+        max-width: 1160px;
+        margin: 22px auto 40px;
+        padding: 0 16px;
+        color: #16365f;
+    }
+
+    .pe-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin: 0 0 12px;
+        border-radius: 999px;
+        border: 1px solid #c9dbf8;
+        background: #f6faff;
+        color: #1f4478;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .pe-back:hover {
+        transform: translateY(-1px);
+        border-color: #b7cff3;
+        box-shadow: 0 8px 18px rgba(31, 73, 138, .14);
+        color: #163a67;
+    }
+
+    .pe-back i { font-size: 13px; }
+
+    .pe-head {
+        background: linear-gradient(145deg, #e8f1ff, #f4f9ff);
+        border: 1px solid #d3e2fb;
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+
+    .pe-head h1 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        color: #1b3f71;
+    }
+
+    .pe-head p {
+        margin: 6px 0 0;
+        font-size: 14px;
+        color: #557197;
+    }
+
+    .pe-section { margin-top: 14px; }
+    .pe-section h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        color: #1a3b6b;
+        font-weight: 800;
+    }
+
+    .pe-logo-wrap {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #d6e3f6;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #f6faff, #eef5ff);
+        padding: 10px 0;
+    }
+
+    .pe-logo-track {
+        display: flex;
+        gap: 10px;
+        width: max-content;
+        padding: 0 10px;
+        animation: peScroll 24s linear infinite;
+    }
+
+    .pe-logo-wrap:hover .pe-logo-track { animation-play-state: paused; }
+
+    .pe-logo {
+        min-width: 210px;
+        background: rgba(255, 255, 255, .78);
+        border: 1px solid #d4e0f4;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 13px;
+        color: #22416f;
+        font-weight: 700;
+        text-align: center;
+        transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .pe-logo:hover {
+        transform: scale(1.03);
+        background: #fff;
+        box-shadow: 0 0 0 1px #cfe0ff inset, 0 12px 24px rgba(30, 90, 170, .18);
+    }
+
+    @@keyframes peScroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+
+    .pe-cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .pe-card {
+        background: rgba(255, 255, 255, .75);
+        backdrop-filter: blur(8px);
+        border: 1px solid #d4e0f4;
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .pe-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px rgba(28, 80, 151, .18);
+    }
+
+    .pe-banner {
+        height: 110px;
+        background: linear-gradient(135deg, #2d62c8, #26abcb);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 10px;
+        color: #fff;
+    }
+
+    .pe-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .2);
+        border: 1px solid rgba(255, 255, 255, .45);
+    }
+
+    .pe-tag {
+        font-size: 10px;
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 8px;
+        background: linear-gradient(135deg, #10b981, #1ea86b);
+        box-shadow: 0 0 10px rgba(16, 185, 129, .55);
+    }
+
+    .pe-body { padding: 10px; }
+    .pe-body h3 { margin: 0; font-size: 14px; color: #1f406f; }
+    .pe-meta { margin: 6px 0 0; font-size: 12px; color: #5a7598; line-height: 1.45; }
+
+    @@media (max-width: 1020px) {
+        .pe-cards { grid-template-columns: 1fr 1fr; }
+    }
+
+    @@media (max-width: 640px) {
+        .pe-head h1 { font-size: 24px; }
+        .pe-cards { grid-template-columns: 1fr; }
+        .pe-logo { min-width: 180px; }
+    }
+</style>
+
+<div class="pe-page">
+    <a class="pe-back" href="javascript:history.back()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Go Back</span>
+    </a>
+
+    <section class="pe-head">
+        <h1>Partner Events</h1>
+        <p>Trusted by leading events and organizers across categories.</p>
+    </section>
+
+    <section class="pe-section">
+        <h2>Trusted by Leading Events &amp; Organizers</h2>
+        <div class="pe-logo-wrap">
+            <div class="pe-logo-track">
+                <div class="pe-logo">TechFest 2025</div>
+                <div class="pe-logo">Garba Night Ahmedabad</div>
+                <div class="pe-logo">Startup Summit India</div>
+                <div class="pe-logo">College Carnival RKU</div>
+                <div class="pe-logo">Music Mania Live</div>
+                <div class="pe-logo">Corporate Expo 2025</div>
+                <div class="pe-logo">TechFest 2025</div>
+                <div class="pe-logo">Garba Night Ahmedabad</div>
+                <div class="pe-logo">Startup Summit India</div>
+                <div class="pe-logo">College Carnival RKU</div>
+                <div class="pe-logo">Music Mania Live</div>
+                <div class="pe-logo">Corporate Expo 2025</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pe-section">
+        <h2>Our Partner Events</h2>
+        <div class="pe-cards">
+            <article class="pe-card">
+                <div class="pe-banner">
+                    <span class="pe-badge">Technology</span>
+                    <span class="pe-tag">Partnered</span>
+                </div>
+                <div class="pe-body">
+                    <h3>TechFest 2025</h3>
+                    <p class="pe-meta">Date: March 28, 2026<br />Location: Ahmedabad</p>
+                </div>
+            </article>
+            <article class="pe-card">
+                <div class="pe-banner">
+                    <span class="pe-badge">Cultural</span>
+                    <span class="pe-tag">Partnered</span>
+                </div>
+                <div class="pe-body">
+                    <h3>Garba Night</h3>
+                    <p class="pe-meta">Date: October 12, 2026<br />Location: Navratri Special</p>
+                </div>
+            </article>
+            <article class="pe-card">
+                <div class="pe-banner">
+                    <span class="pe-badge">Business</span>
+                    <span class="pe-tag">Partnered</span>
+                </div>
+                <div class="pe-body">
+                    <h3>Startup Summit</h3>
+                    <p class="pe-meta">Date: July 18, 2026<br />Location: Mumbai</p>
+                </div>
+            </article>
+            <article class="pe-card">
+                <div class="pe-banner">
+                    <span class="pe-badge">Live Show</span>
+                    <span class="pe-tag">Partnered</span>
+                </div>
+                <div class="pe-body">
+                    <h3>EDM Concert</h3>
+                    <p class="pe-meta">Date: August 02, 2026<br />Location: Bengaluru</p>
+                </div>
+            </article>
+        </div>
+    </section>
+</div>
+
+
+
+

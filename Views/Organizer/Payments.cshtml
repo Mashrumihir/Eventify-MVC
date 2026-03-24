@@ -1,0 +1,78 @@
+@model Eventify.ViewModels.OrganizerPaymentsViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "Payments";
+}
+
+@section PageStyles {
+<style>
+.py-wrap{padding:24px}.py-head h1{margin:0;font-size: 26px;font-weight:800}.py-head p{margin:6px 0 16px;color:#667085;font-size: 15px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}.s{background:#fff;border-radius:16px;border:1px solid #dde3ea;padding:16px}.s .ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size: 12px}.s .lbl{margin-top:12px;color:#667085;font-size: 13px}.s .num{font-size: 23px;font-weight:800;color:#111827;margin-top:2px}
+.tbl{background:#fff;border:1px solid #dbe2ea;border-radius:18px;overflow:hidden}table{width:100%;border-collapse:collapse}th,td{padding:12px 10px;border-top:1px solid #e4e7ec;font-size: 13px}th{background:#f8fafc;border-top:0;color:#344054}.amount{font-weight:800}.ok{color:#16a34a}.pending{color:#ca8a04}.refund{color:#ef4444}
+.foot{padding:12px 16px;color:#667085;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pager{display:flex;align-items:center;gap:8px}
+.pager a,.pager span{border:1px solid #cfd4dc;border-radius:8px;padding:6px 10px;font-size:12px;text-decoration:none}
+.pager a{background:#fff;color:#344054}
+.pager .disabled{background:#f8fafc;color:#98a2b3;border-color:#e4e7ec}
+@@media(max-width:1200px){.stats{grid-template-columns:repeat(2,minmax(0,1fr));}.tbl{overflow:auto}}
+</style>
+}
+
+<section class="py-wrap">
+    <header class="py-head"><h1>Payments</h1><p>Track all payment transactions and revenue.</p></header>
+
+    <div class="stats">
+        <article class="s"><div class="ico" style="background:#22c55e33;color:#16a34a"><i class="bi bi-currency-rupee"></i></div><div class="lbl">Total Revenue</div><div class="num">&#8377;@Model.TotalRevenue.ToString("0,0")</div></article>
+        <article class="s"><div class="ico" style="background:#facc1533;color:#a16207"><i class="bi bi-clock-history"></i></div><div class="lbl">Pending Payouts</div><div class="num">&#8377;@Model.PendingPayouts.ToString("0,0")</div></article>
+        <article class="s"><div class="ico" style="background:#60a5fa33;color:#2563eb"><i class="bi bi-check-circle-fill"></i></div><div class="lbl">Successful Transactions</div><div class="num">@Model.SuccessfulTransactions</div></article>
+        <article class="s"><div class="ico" style="background:#f8717133;color:#dc2626"><i class="bi bi-arrow-counterclockwise"></i></div><div class="lbl">Refund Requests</div><div class="num">@Model.RefundRequests</div></article>
+    </div>
+
+    <section class="tbl">
+        <table>
+            <thead><tr><th>Transaction ID</th><th>Date</th><th>Event</th><th>Customer</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    var sc = row.Status == "Success" ? "ok" : row.Status == "Pending" ? "pending" : "refund";
+                    <tr>
+                        <td>#@row.TransactionId</td>
+                        <td>@row.Date.ToString("MMM d, yyyy")</td>
+                        <td>@row.EventTitle</td>
+                        <td>@row.Customer</td>
+                        <td class="amount">&#8377;@row.Amount.ToString("0,0")</td>
+                        <td>@row.Method</td>
+                        <td class="@sc">@row.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @{
+            var start = Model.TotalCount == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+            var end = Math.Min(Model.TotalCount, Model.Page * Model.PageSize);
+        }
+        <div class="foot">
+            <div>Showing @start-@end of @Model.TotalCount transactions</div>
+            <div class="pager">
+                @if (Model.HasPrevious)
+                {
+                    <a href="@Url.Action("Payments", "Organizer", new { page = Model.Page - 1 })">Previous</a>
+                }
+                else
+                {
+                    <span class="disabled">Previous</span>
+                }
+                <span>Page @Model.Page / @Model.TotalPages</span>
+                @if (Model.HasNext)
+                {
+                    <a href="@Url.Action("Payments", "Organizer", new { page = Model.Page + 1 })">Next</a>
+                }
+                else
+                {
+                    <span class="disabled">Next</span>
+                }
+            </div>
+        </div>
+    </section>
+</section>
+

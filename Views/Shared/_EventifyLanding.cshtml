@@ -1,0 +1,231 @@
+@using Eventify.Models
+@{
+    var events = ViewBag.Events as List<EventItem> ?? new List<EventItem>();
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var searchLocation = ViewBag.SearchLocation as string ?? string.Empty;
+    var searchDate = ViewBag.SearchDate as string ?? string.Empty;
+    var selectedCategory = ViewBag.SelectedCategory as string ?? string.Empty;
+    var hasSearch = ViewBag.HasSearch is bool searchRequested && searchRequested;
+}
+
+<nav class="ev-nav">
+    <div class="container ev-nav-inner">
+        <a class="ev-brand" href="#home">
+            <span class="ev-brand-star"><i class="bi bi-star-fill"></i></span>
+            <span>Eventify</span>
+        </a>
+
+        <div class="ev-main-links">
+            <a href="#home">Home</a>
+            <a href="#events">Events</a>
+            <a href="#categories">Categories</a>
+            <a href="#about">About</a>
+            <a href="@Url.Action("Contact", "Home")">Contact</a>
+        </div>
+
+        <div class="ev-nav-actions">
+            <a class="ev-link-btn" href="/Auth/Login">Login</a>
+            <a class="ev-link-btn" href="/Auth/Register">Register</a>
+            <a class="ev-primary-btn ev-primary-btn-sm" href="/">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<section id="home" class="ev-hero">
+    <div class="container ev-hero-grid">
+        <div class="ev-hero-left">
+            <h1>Discover Amazing<br />Events Near You</h1>
+            <p>
+                Join thousands of people experiencing unforgettable moments.<br />
+                Find and book the perfect event for you.
+            </p>
+
+            <div class="ev-search-box">
+                <form method="get" action="@Url.Action("Index", "Home")">
+                    <div class="ev-search-top">
+                        <div class="ev-input-wrap">
+                            <i class="bi bi-geo-alt"></i>
+                            <input type="text" name="location" placeholder="Location" value="@searchLocation" />
+                        </div>
+                        <div class="ev-input-wrap">
+                            <i class="bi bi-calendar-event"></i>
+                            <input type="date" name="date" value="@searchDate" />
+                        </div>
+                        <div class="ev-input-wrap">
+                            <i class="bi bi-tags"></i>
+                            <select name="category">
+                                <option value="">All Categories</option>
+                                @foreach (var category in categories)
+                                {
+                                    if (string.Equals(category, selectedCategory, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <option value="@category" selected>@category</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@category">@category</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <button class="ev-primary-btn" type="submit">Search Events</button>
+                </form>
+            </div>
+
+            <div class="ev-hero-cta">
+                <a class="ev-btn-white" href="#events">Explore Events</a>
+                <a class="ev-btn-outline" href="#about">Learn More</a>
+            </div>
+        </div>
+
+        <div class="ev-hero-right">
+            <img src="@Url.Content("~/images/img.png")"
+                 alt="Hero Event"
+                 onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='@Url.Content("~/img.png")';}" />
+        </div>
+
+    </div>
+</section>
+
+<section class="ev-stats-section">
+    <div class="container ev-grid ev-grid-4">
+        <article class="ev-stat-card"><div class="ev-stat-icon blue"><i class="bi bi-calendar-week"></i></div><h3>10K+</h3><p>Events</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon violet"><i class="bi bi-people-fill"></i></div><h3>50K+</h3><p>Attendees</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon indigo"><i class="bi bi-file-earmark-text"></i></div><h3>2K+</h3><p>Organizers</p></article>
+        <article class="ev-stat-card"><div class="ev-stat-icon gold"><i class="bi bi-star-fill"></i></div><h3>4.9</h3><p>Rating</p></article>
+    </div>
+</section>
+
+<section id="about" class="ev-section">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>Why Choose Eventify?</h2>
+            <p>Experience the future of event booking with our cutting edge features</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            <article class="ev-feature-card"><span class="ev-mini-icon blue"><i class="bi bi-lightning-charge-fill"></i></span><h4>Instant Booking</h4><p>Book your favorite events instantly with just a few clicks.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon green"><i class="bi bi-shield-lock-fill"></i></span><h4>Secure Payments</h4><p>Your payments are protected with bank-level security.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon purple"><i class="bi bi-ticket-perforated-fill"></i></span><h4>Digital Tickets</h4><p>Access your tickets anytime, anywhere on your mobile device.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon orange"><i class="bi bi-bell-fill"></i></span><h4>Event Reminders</h4><p>Never miss an event with smart notifications and reminders.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon pink"><i class="bi bi-heart-fill"></i></span><h4>Wishlist Events</h4><p>Save events you love and get notified when tickets are available.</p></article>
+            <article class="ev-feature-card"><span class="ev-mini-icon cyan"><i class="bi bi-graph-up-arrow"></i></span><h4>Trending Events</h4><p>Discover what's popular and trending in your area.</p></article>
+        </div>
+    </div>
+</section>
+
+<section id="events" class="ev-section ev-soft-bg">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>@(hasSearch ? "Search Results" : "Popular Events")</h2>
+            <p>@(hasSearch ? "Events matching your selected filters" : "Don't miss out on the most exciting events happening near you")</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            @if (events.Count == 0)
+            {
+                <article class="ev-event-card">
+                    <div class="ev-event-body">
+                        <h4>No events found</h4>
+                        <p>Try changing location, date, or category filters.</p>
+                    </div>
+                </article>
+            }
+            else
+            {
+                @foreach (var item in events)
+                {
+                    <article class="ev-event-card">
+                        <img src="@item.ImageUrl" alt="@item.Title" />
+                        <div class="ev-event-body">
+                            <h4>@item.Title</h4>
+                            <p>@item.StartDateTime.ToString("MMMM d, yyyy")</p>
+                            <p class="ev-meta">@item.Location</p>
+                            <div class="ev-event-row">
+                                <span><i class="bi bi-star-fill"></i> @item.Rating.ToString("0.0")</span>
+                                <b>Rs @item.Price.ToString("0")</b>
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.location.href='@Url.Action("EventDetails", "Attend", new { id = item.Id })'">Book Now</button>
+                    </article>
+                }
+            }
+        </div>
+
+        <div class="ev-center mt-4">
+            <a class="ev-view-all" href="javascript:void(0)">View All Events</a>
+        </div>
+    </div>
+</section>
+
+<section id="categories" class="ev-section">
+    <div class="container">
+        <header class="ev-section-head">
+            <h2>Browse by Category</h2>
+            <p>Find the perfect event that matches your interests</p>
+        </header>
+
+        <div class="ev-grid ev-grid-3">
+            <article class="ev-category-card"><span class="ev-mini-icon blue"><i class="bi bi-music-note-beamed"></i></span><h4>Music</h4><p>1,234 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon orange"><i class="bi bi-trophy-fill"></i></span><h4>Sports</h4><p>856 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon purple"><i class="bi bi-palette-fill"></i></span><h4>Arts</h4><p>642 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon red"><i class="bi bi-cup-straw"></i></span><h4>Food &amp; Drink</h4><p>423 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon indigo"><i class="bi bi-briefcase-fill"></i></span><h4>Business</h4><p>789 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon gold"><i class="bi bi-emoji-laughing-fill"></i></span><h4>Comedy</h4><p>312 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon pink"><i class="bi bi-cup-hot-fill"></i></span><h4>Nightlife</h4><p>567 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon green"><i class="bi bi-activity"></i></span><h4>Fitness</h4><p>445 events</p></article>
+            <article class="ev-category-card"><span class="ev-mini-icon cyan"><i class="bi bi-mortarboard-fill"></i></span><h4>Education</h4><p>678 events</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="ev-section">
+    <div class="container">
+        <div class="ev-newsletter">
+            <div class="ev-news-icon"><i class="bi bi-envelope-fill"></i></div>
+            <h2>Stay Updated with the Latest Events</h2>
+            <p>Get exclusive access to upcoming events, special offers, and insider updates delivered straight to your inbox.</p>
+            <div class="ev-news-form">
+                <input type="email" placeholder="Enter your email address" />
+                <button>Subscribe</button>
+            </div>
+            <small>We respect your privacy. Unsubscribe at any time.</small>
+        </div>
+    </div>
+</section>
+
+<footer id="contact" class="ev-footer">
+    <div class="container">
+        <div class="ev-footer-grid">
+            <div>
+                <h4><i class="bi bi-star-fill"></i> Eventify</h4>
+                <p>Discover amazing events happening around you. From concerts to conferences, we've got you covered.</p>
+                <div class="ev-socials">
+                    <a href="javascript:void(0)" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="javascript:void(0)" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                    <a href="javascript:void(0)" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                    <a href="javascript:void(0)" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                </div>
+            </div>
+            <div>
+                <h5>Quick Links</h5>
+                <a href="@Url.Action("AboutUs", "Home")">About Us</a><a href="@Url.Action("PartnerEvents", "Home")">Partner Events</a><a href="@Url.Action("FAQ", "Home")">FAQ</a><a href="@Url.Action("Pricing", "Home")">Pricing</a><a href="@Url.Action("Contact", "Home")">Contact</a>
+            </div>
+            <div>
+                <h5>Categories</h5>
+                <a href="javascript:void(0)">Music Events</a><a href="javascript:void(0)">Sports Events</a><a href="javascript:void(0)">Arts &amp; Culture</a><a href="javascript:void(0)">Food &amp; Drink</a><a href="javascript:void(0)">Business</a><a href="javascript:void(0)">Nightlife</a>
+            </div>
+            <div>
+                <h5>Contact Info</h5>
+                <p><i class="bi bi-geo-alt"></i> Patel Colony 3/5<br />Jamnagar, Gujarat, India</p>
+                <p><i class="bi bi-telephone"></i> +91 81062 53134</p>
+                <p><i class="bi bi-envelope"></i> mashrumihir13@gmail.com</p>
+            </div>
+        </div>
+        <div class="ev-footer-bottom">
+            <span>© 2026 Eventify. All rights reserved.</span>
+            <div><a href="@Url.Action("PrivacyPolicy", "Home")">Privacy Policy</a><a href="@Url.Action("TermsOfService", "Home")">Terms of Service</a></div>
+        </div>
+    </div>
+</footer>

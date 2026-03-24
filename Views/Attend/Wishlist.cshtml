@@ -1,0 +1,132 @@
+@model Eventify.ViewModels.WishlistViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Wishlist";
+}
+
+@section PageStyles {
+    <style>
+        .wl-wrap { padding: 22px 24px; background: #eef1f6; min-height: calc(100vh - 58px); }
+        .wl-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+        .wl-title { margin: 0; font-size: 50px; line-height: 1.04; color: #182743; font-weight: 800; }
+        .wl-sub { margin: 6px 0 0; color: #607794; font-size: 18px; }
+        .wl-count { background: #fff; border: 1px solid #dbe3ee; border-radius: 12px; padding: 10px 14px; color: #374151; font-size: 16px; font-weight: 700; white-space: nowrap; }
+        .wl-count i { color: #ef4444; margin-right: 6px; }
+
+        .wl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+        .wl-card { background: #fff; border: 1px solid #dbe3ef; border-radius: 16px; overflow: hidden; }
+        .wl-img-wrap { position: relative; height: 190px; }
+        .wl-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .wl-cat { position: absolute; top: 12px; left: 12px; color: #fff; font-size: 18px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+        .wl-heart { position: absolute; top: 12px; right: 12px; color: #ef4444; font-size: 24px; }
+
+        .wl-body { padding: 14px; }
+        .wl-body h3 { margin: 0; color: #182743; font-size: 21px; font-weight: 800; line-height: 1.2; }
+        .wl-meta { margin-top: 10px; color: #566f90; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .wl-meta i { color: #2563eb; }
+        .wl-meta .loc i { color: #ef4444; }
+        .wl-meta .star i { color: #eab308; }
+        .wl-bottom { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .wl-price { font-size: 43px; line-height: 1; color: #2563eb; font-weight: 900; }
+        .wl-price.free { color: #16a34a; }
+        .wl-actions { display: flex; gap: 8px; align-items: center; }
+        .wl-remove {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            color: #9ca3af;
+            background: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .wl-book {
+            height: 40px;
+            min-width: 124px;
+            border: 0;
+            border-radius: 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 14px;
+            cursor: pointer;
+        }
+
+        .wl-empty {
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 14px;
+            color: #607794;
+            text-align: center;
+            font-size: 18px;
+            padding: 26px;
+        }
+
+        @@media (max-width: 1200px) { .wl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @@media (max-width: 860px) { .wl-head { flex-direction: column; align-items: flex-start; } .wl-grid { grid-template-columns: 1fr; } .wl-wrap { padding: 14px; } .wl-title { font-size: 36px; } .wl-price { font-size: 32px; } }
+    </style>
+}
+
+<section class="wl-wrap">
+    <div class="wl-head">
+        <div>
+            <h1 class="wl-title">My Wishlist</h1>
+            <p class="wl-sub">Events you want to attend</p>
+        </div>
+        <div class="wl-count"><i class="bi bi-heart-fill"></i>@Model.Items.Count Events Saved</div>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="wl-empty">No saved events yet.</div>
+    }
+    else
+    {
+        <div class="wl-grid">
+            @foreach (var item in Model.Items)
+            {
+                var image = string.IsNullOrWhiteSpace(item.ImageUrl)
+                    ? "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80"
+                    : item.ImageUrl;
+                var isFree = item.Price <= 0;
+                <article class="wl-card">
+                    <div class="wl-img-wrap">
+                        <img class="wl-img" src="@image" alt="@item.Title" />
+                        <div class="wl-cat">@item.Category</div>
+                        <i class="bi bi-heart-fill wl-heart"></i>
+                    </div>
+
+                    <div class="wl-body">
+                        <h3>@item.Title</h3>
+                        <div class="wl-meta"><i class="bi bi-calendar3"></i>@item.EventDate.ToString("MMMM d, yyyy")</div>
+                        <div class="wl-meta loc"><i class="bi bi-geo-alt-fill"></i>@item.Location</div>
+                        <div class="wl-meta star"><i class="bi bi-star-fill"></i>@item.Rating.ToString("0.0") (@item.ReviewCount reviews)</div>
+
+                        <div class="wl-bottom">
+                            <div class="wl-price @(isFree ? "free" : "")">@(isFree ? "Free" : $"₹{item.Price:0}")</div>
+                            <div class="wl-actions">
+                                <form method="post" action="@Url.Action("RemoveFromWishlist", "Attend")">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="eventId" value="@item.EventId" />
+                                    <button class="wl-remove" type="submit" title="Remove"><i class="bi bi-trash-fill"></i></button>
+                                </form>
+                                <form method="post" action="@Url.Action("BookFromWishlist", "Attend")">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="eventId" value="@item.EventId" />
+                                    <button class="wl-book" type="submit">Book Now</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

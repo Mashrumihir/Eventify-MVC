@@ -1,0 +1,389 @@
+@model Eventify.ViewModels.OrganizerCreateEventViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = Model.Id.HasValue ? "Edit Event" : "Create Event";
+    var isEdit = Model.Id.HasValue;
+}
+
+@section PageStyles {
+<style>
+.ce-wrap { padding: 14px; }
+.ce-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.ce-head h1 { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; }
+.ce-head p { margin: 2px 0 0; color: #64748b; font-size: 11px; }
+
+.panel { background: #fff; border: 1px solid #dbe1e8; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+.panel h2 { margin: 0 0 8px; font-size: 14px; color: #0f172a; font-weight: 700; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.field label { font-size: 11px; color: #334155; font-weight: 600; }
+.field input, .field textarea, .field select {
+    border: 1px solid #cfd6de;
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 12px;
+    background: #fff;
+}
+.field textarea { min-height: 80px; resize: vertical; }
+
+.map-preview, .upload-box {
+    border: 1px dashed #c9d2de;
+    background: #f8fafc;
+    border-radius: 8px;
+    height: 165px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #64748b;
+    font-size: 11px;
+    text-align: center;
+}
+.upload-box i, .map-preview i { font-size: 16px; margin-bottom: 4px; color: #94a3b8; }
+.upload-box { height: 130px; font-size: 12px; }
+.upload-box small { display:block; margin-top: 2px; font-size: 11px; color:#64748b; }
+.media-preview { margin-top: 8px; }
+.banner-preview {
+    width: 100%;
+    max-height: 220px;
+    border: 1px solid #d5dee9;
+    border-radius: 10px;
+    object-fit: cover;
+    display: none;
+}
+.gallery-preview-grid {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+}
+.gallery-thumb {
+    width: 100%;
+    height: 86px;
+    border: 1px solid #d5dee9;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.media-label { font-size: 11px; color: #334155; font-weight: 600; margin: 2px 0 6px; }
+.upload-box { cursor: pointer; user-select: none; }
+.upload-box:focus { outline: 2px solid #60a5fa; outline-offset: 2px; }
+.map-preview { cursor: pointer; position: relative; overflow: hidden; }
+.map-preview .map-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.map-preview iframe { width:100%; height:100%; border:0; display:none; position:absolute; inset:0; }
+.map-open-link {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    display: none;
+    border: 1px solid #cfd6de;
+    background: #ffffff;
+    color: #1d4ed8;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
+}
+.map-open-link:hover { color: #1e40af; }
+
+.ticket-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 10px; }
+.ticket-row label { cursor: pointer; }
+.ticket-row input { display: none; }
+.ticket-chip {
+    display: block;
+    border: 1px solid #cfd6de;
+    border-radius: 7px;
+    text-align: center;
+    padding: 7px;
+    font-size: 12px;
+    color: #334155;
+    background: #fff;
+}
+.ticket-row input:checked + .ticket-chip {
+    border-color: #2563eb;
+    box-shadow: inset 0 0 0 1px #2563eb;
+    color: #1d4ed8;
+}
+
+.switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.switch-row span { font-size: 11px; color: #334155; font-weight: 600; }
+.switch {
+    position: relative; width: 32px; height: 18px; background: #cbd5e1; border-radius: 999px;
+}
+.switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%;
+}
+#earlyBird:checked + .switch { background: #3b82f6; }
+#earlyBird:checked + .switch::after { left: 16px; }
+
+.footer {
+    background: #fff;
+    border: 1px solid #dbe1e8;
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.btn {
+    border: 1px solid #cfd6de;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 11px;
+    text-decoration: none;
+    background: #fff;
+    color: #344054;
+}
+.btn.primary { border: 0; color: #fff; background: linear-gradient(90deg,#2563eb,#06b6d4); }
+
+.msg { padding: 7px 9px; border-radius: 7px; background: #fff1f2; color: #be123c; margin-bottom: 8px; font-size: 11px; }
+@@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } .ticket-row { grid-template-columns: 1fr; } }
+</style>
+}
+
+<section class="ce-wrap">
+    <header class="ce-head">
+        <i class="bi bi-calendar-plus" style="font-size:14px;color:#2563eb;margin-top:2px"></i>
+        <div>
+            <h1>@(isEdit ? "Edit Event" : "Create Event")</h1>
+            <p>@(isEdit ? "Update your event details." : "Fill in the details to create a new event.")</p>
+        </div>
+    </header>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="msg">Please fill required fields.</div>
+    }
+
+    <form method="post" asp-action="CreateEvent" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        @if (Model.Id.HasValue)
+        {
+            <input asp-for="Id" type="hidden" />
+        }
+
+        <section class="panel">
+            <h2>Basic Information</h2>
+            <div class="field"><label>Event Title</label><input asp-for="Title" placeholder="Enter event title" /></div>
+            <div class="field"><label>Description</label><textarea asp-for="Description" placeholder="Describe your event..."></textarea></div>
+            <div class="grid2">
+                <div class="field"><label>Date</label><input asp-for="Date" type="date" /></div>
+                <div class="field"><label>Time</label><input asp-for="Time" type="time" /></div>
+            </div>
+            <div class="field">
+                <label>Category</label>
+                <select asp-for="Category">
+                    <option value="">Select a category</option>
+                    <option>Technology</option>
+                    <option>Music</option>
+                    <option>Business</option>
+                    <option>Art</option>
+                    <option>Food</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Location</h2>
+            <div class="field"><label>Venue Address</label><input id="venueAddressInput" asp-for="VenueAddress" placeholder="Enter venue address" /></div>
+            <div id="mapPreviewBox" class="map-preview" role="button" tabindex="0" title="Click to show map">
+                <div id="mapEmptyState" class="map-empty">
+                    <i class="bi bi-geo-alt"></i>
+                    <div>Enter venue address to preview map</div>
+                </div>
+                <a id="openInMapsLink" class="map-open-link" href="#" target="_blank" rel="noopener noreferrer">
+                    Open in Maps <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <iframe id="googleMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Media</h2>
+            <div class="media-label">Event Banner Upload</div>
+            <input id="bannerInput" name="bannerFile" type="file" accept=".png,.jpg,.jpeg,.webp" hidden />
+            <div id="bannerUploadBox" class="upload-box" style="margin-bottom:8px;" role="button" tabindex="0" title="Click to upload banner">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <div id="bannerUploadText">Click to upload or drag and drop</div>
+                <small id="bannerUploadHint">PNG, JPG or WEBP (max. 2MB)</small>
+            </div>
+            <div class="media-preview">
+                <img id="bannerPreview" class="banner-preview" src="@Model.ImageUrl" alt="Banner preview" />
+            </div>
+            <div class="media-label">Gallery Images Upload</div>
+            <input id="galleryInput" name="galleryFiles" type="file" accept=".png,.jpg,.jpeg,.webp" multiple hidden />
+            <div id="galleryUploadBox" class="upload-box" role="button" tabindex="0" title="Click to upload gallery images">
+                <i class="bi bi-images"></i>
+                <div id="galleryUploadText">Upload multiple images</div>
+                <small id="galleryUploadHint">Up to 10 images (max. 2MB each)</small>
+            </div>
+            <div id="galleryPreviewGrid" class="gallery-preview-grid"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Ticket Configuration</h2>
+            <div class="ticket-row">
+                <label><input type="radio" asp-for="TicketType" value="Free" /><span class="ticket-chip">Free</span></label>
+                <label><input type="radio" asp-for="TicketType" value="Paid" /><span class="ticket-chip">Paid</span></label>
+                <label><input type="radio" asp-for="TicketType" value="VIP" /><span class="ticket-chip">VIP</span></label>
+            </div>
+            <div class="grid2">
+                <div class="field"><label>Ticket Price (&#8377;)</label><input asp-for="TicketPrice" type="number" step="0.01" min="0" /></div>
+                <div class="field"><label>Available Quantity</label><input asp-for="AvailableQuantity" type="number" min="0" /></div>
+            </div>
+            <div class="switch-row">
+                <span>Early Bird Discount</span>
+                <label style="display:flex;align-items:center;cursor:pointer;">
+                    <input id="earlyBird" asp-for="EarlyBirdDiscount" type="checkbox" hidden />
+                    <span class="switch"></span>
+                </label>
+            </div>
+            <div class="field"><label>Early Bird Price (&#8377;)</label><input asp-for="EarlyBirdPrice" type="number" step="0.01" min="0" /></div>
+            <div class="field">
+                <label>Refund Policy</label>
+                <select asp-for="RefundPolicy">
+                    <option value="">Select refund policy</option>
+                    <option>Flexible - full refund up to 48 hours</option>
+                    <option>Moderate - 50% refund up to 3 days</option>
+                    <option>Strict - non-refundable</option>
+                </select>
+            </div>
+        </section>
+
+        <div class="footer">
+            <a class="btn" href="@Url.Action("ManageEvents", "Organizer")">Save as Draft</a>
+            <button class="btn primary" type="submit">@(isEdit ? "Update Event" : "Publish Event")</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+<script>
+(() => {
+    const venueInput = document.getElementById('venueAddressInput');
+    const mapPreview = document.getElementById('mapPreviewBox');
+    const mapEmptyState = document.getElementById('mapEmptyState');
+    const openInMapsLink = document.getElementById('openInMapsLink');
+    const mapFrame = document.getElementById('googleMapFrame');
+    const bannerInput = document.getElementById('bannerInput');
+    const bannerUploadBox = document.getElementById('bannerUploadBox');
+    const bannerUploadText = document.getElementById('bannerUploadText');
+    const bannerUploadHint = document.getElementById('bannerUploadHint');
+    const bannerPreview = document.getElementById('bannerPreview');
+    const galleryInput = document.getElementById('galleryInput');
+    const galleryUploadBox = document.getElementById('galleryUploadBox');
+    const galleryUploadText = document.getElementById('galleryUploadText');
+    const galleryUploadHint = document.getElementById('galleryUploadHint');
+    const galleryPreviewGrid = document.getElementById('galleryPreviewGrid');
+
+    if (!venueInput || !mapPreview || !mapEmptyState || !mapFrame || !openInMapsLink) return;
+
+    let mapLoadTimer = null;
+
+    const showMap = (silent = false) => {
+        const address = (venueInput.value || '').trim();
+        if (!address) {
+            mapFrame.style.display = 'none';
+            mapEmptyState.style.display = 'flex';
+            openInMapsLink.style.display = 'none';
+            if (!silent) {
+                venueInput.focus();
+            }
+            return;
+        }
+
+        const query = encodeURIComponent(address);
+        mapFrame.src = `https://www.google.com/maps?q=${query}&output=embed`;
+        openInMapsLink.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        mapEmptyState.style.display = 'none';
+        mapFrame.style.display = 'block';
+        openInMapsLink.style.display = 'inline-flex';
+    };
+
+    mapPreview.addEventListener('click', () => showMap(false));
+    venueInput.addEventListener('input', () => {
+        if (mapLoadTimer) clearTimeout(mapLoadTimer);
+        mapLoadTimer = setTimeout(() => showMap(true), 500);
+    });
+
+    mapPreview.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            showMap(false);
+        }
+    });
+
+    showMap(true);
+
+    const openPicker = (input) => {
+        if (!input) return;
+        input.click();
+    };
+
+    const addKeyboardOpen = (box, input) => {
+        if (!box) return;
+        box.addEventListener('click', () => openPicker(input));
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPicker(input);
+            }
+        });
+    };
+
+    addKeyboardOpen(bannerUploadBox, bannerInput);
+    addKeyboardOpen(galleryUploadBox, galleryInput);
+
+    if (bannerInput && bannerUploadText && bannerUploadHint) {
+        if (bannerPreview && bannerPreview.getAttribute('src')) {
+            bannerPreview.style.display = 'block';
+        }
+        bannerInput.addEventListener('change', () => {
+            const file = bannerInput.files && bannerInput.files[0] ? bannerInput.files[0] : null;
+            if (!file) {
+                bannerUploadText.textContent = 'Click to upload or drag and drop';
+                bannerUploadHint.textContent = 'PNG, JPG or WEBP (max. 2MB)';
+                if (bannerPreview) {
+                    bannerPreview.style.display = bannerPreview.getAttribute('src') ? 'block' : 'none';
+                }
+                return;
+            }
+
+            bannerUploadText.textContent = file.name;
+            bannerUploadHint.textContent = `Selected: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            if (bannerPreview) {
+                bannerPreview.src = URL.createObjectURL(file);
+                bannerPreview.style.display = 'block';
+            }
+        });
+    }
+
+    if (galleryInput && galleryUploadText && galleryUploadHint && galleryPreviewGrid) {
+        galleryInput.addEventListener('change', () => {
+            const count = galleryInput.files ? galleryInput.files.length : 0;
+            if (count === 0) {
+                galleryUploadText.textContent = 'Upload multiple images';
+                galleryUploadHint.textContent = 'Up to 10 images (max. 2MB each)';
+                galleryPreviewGrid.innerHTML = '';
+                return;
+            }
+
+            galleryUploadText.textContent = `${count} image(s) selected`;
+            galleryUploadHint.textContent = 'Click again to change selection';
+            galleryPreviewGrid.innerHTML = '';
+
+            Array.from(galleryInput.files).slice(0, 10).forEach((file) => {
+                const img = document.createElement('img');
+                img.className = 'gallery-thumb';
+                img.alt = file.name;
+                img.src = URL.createObjectURL(file);
+                galleryPreviewGrid.appendChild(img);
+            });
+        });
+    }
+})();
+</script>
+}
+

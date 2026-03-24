@@ -1,0 +1,130 @@
+@model Eventify.ViewModels.AttendNotificationsViewModel
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Notifications";
+}
+
+@section PageStyles {
+    <style>
+        .nt-wrap { padding: 22px 24px; background: #d4dbe5; min-height: calc(100vh - 58px); }
+        .nt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .nt-title { margin: 0; color: #18253d; font-size: 50px; line-height: 1.05; font-weight: 800; }
+        .nt-sub { margin: 6px 0 0; color: #5f7493; font-size: 18px; }
+        .nt-read {
+            border: 0;
+            background: transparent;
+            color: #2563eb;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+
+        .nt-list { display: grid; gap: 10px; }
+        .nt-item {
+            background: #fff;
+            border: 1px solid #dbe3ef;
+            border-radius: 16px;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: 56px 1fr 120px;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+        }
+        .nt-item.unread::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 16px 0 0 16px;
+            background: #3b82f6;
+        }
+
+        .nt-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .nt-icon.booking, .nt-icon.payment { background: #dcfce7; color: #16a34a; }
+        .nt-icon.reminder { background: #dbeafe; color: #2563eb; }
+        .nt-icon.wishlist { background: #fee2e2; color: #ef4444; }
+        .nt-icon.review { background: #fef3c7; color: #d97706; }
+        .nt-icon.announcement { background: #e0f2fe; color: #0284c7; }
+        .nt-icon.info { background: #e5e7eb; color: #4b5563; }
+
+        .nt-main h3 { margin: 0; color: #18253d; font-size: 17px; font-weight: 800; }
+        .nt-main p { margin: 4px 0 0; color: #4f6788; font-size: 15px; }
+        .nt-time { text-align: right; color: #6b7280; font-size: 14px; }
+
+        .nt-empty {
+            background: #fff;
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            text-align: center;
+            color: #607794;
+            font-size: 16px;
+            padding: 20px;
+        }
+
+        @@media (max-width: 900px) {
+            .nt-wrap { padding: 12px; }
+            .nt-title { font-size: 34px; }
+            .nt-sub, .nt-read { font-size: 14px; }
+            .nt-item { grid-template-columns: 48px 1fr; }
+            .nt-time { text-align: left; grid-column: 2 / -1; }
+            .nt-main h3 { font-size: 15px; }
+            .nt-main p { font-size: 13px; }
+        }
+    </style>
+}
+
+<section class="nt-wrap">
+    <div class="nt-head">
+        <div>
+            <h1 class="nt-title">Notifications</h1>
+            <p class="nt-sub">You have @Model.UnreadCount unread notifications</p>
+        </div>
+        <form method="post" action="@Url.Action("MarkAllNotificationsRead", "Attend")">
+            @Html.AntiForgeryToken()
+            <button class="nt-read" type="submit">Mark all as read</button>
+        </form>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="nt-empty">No notifications.</div>
+    }
+    else
+    {
+        <div class="nt-list">
+            @foreach (var item in Model.Items)
+            {
+                var icon = item.Kind switch
+                {
+                    "booking" => "bi-ticket-perforated-fill",
+                    "reminder" => "bi-calendar-event",
+                    "wishlist" => "bi-heart",
+                    "review" => "bi-star",
+                    "payment" => "bi-check-lg",
+                    "announcement" => "bi-megaphone",
+                    _ => "bi-bell"
+                };
+                <article class="nt-item @(item.IsUnread ? "unread" : "")">
+                    <div class="nt-icon @item.Kind"><i class="bi @icon"></i></div>
+                    <div class="nt-main">
+                        <h3>@item.Title</h3>
+                        <p>@item.Message</p>
+                    </div>
+                    <div class="nt-time">@item.RelativeTime</div>
+                </article>
+            }
+        </div>
+    }
+</section>

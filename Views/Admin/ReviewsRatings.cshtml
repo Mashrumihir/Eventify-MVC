@@ -1,0 +1,389 @@
+@model Eventify.ViewModels.AdminReviewsRatingsViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title { margin: 0; font-size: 36px !important; color: #1c355f; font-weight: 800; }
+.ad-sub { margin: 2px 0 14px; font-size: 18px !important; color: #60779b; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.write-btn {
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #0ea5c6, #2a8dd0);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+.modal-backdrop.show { display: flex; }
+.write-form {
+    width: min(100%, 520px);
+    border: 1px solid #d6e1f0;
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px 18px;
+    box-shadow: 0 24px 60px rgba(2, 8, 23, .35);
+}
+.wf-title { margin: 0 0 10px; color: #162643; font-size: 20px !important; font-weight: 800; }
+.wf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.wf-field label { display: block; font-size: 11px; color: #5f7699; margin-bottom: 3px; }
+.wf-field input,
+.wf-field select,
+.wf-field textarea {
+    width: 100%;
+    border: 1px solid #c6d4e8;
+    border-radius: 8px;
+    padding: 7px 9px;
+    font-size: 12px;
+    color: #1f365c;
+}
+.wf-field textarea { min-height: 86px; resize: vertical; margin-top: 8px; }
+.wf-split {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1fr 150px;
+    gap: 8px;
+}
+.wf-actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 10px; }
+.btn-publish {
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #1aa0d0, #1e8bc8);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+.stat {
+    border-radius: 12px !important;
+    border: 1px solid #d6e1f0 !important;
+    padding: 10px 12px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stat .label { font-size: 12px !important; color: #425d86; margin-bottom: 2px; }
+.stat .num { font-size: 36px !important; font-weight: 800; color: #163d70; line-height: 1; }
+.stat .ico {
+    width: 24px; height: 24px; border-radius: 999px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 11px;
+}
+.s-total { background: #fbfbf8; }
+.s-approved { background: #edf7ef; }
+.s-pending { background: #fff8e5; }
+.s-reported { background: #fff2f2; }
+.s-total .ico { background: #f9efc5; color: #b58900; }
+.s-approved .ico { background: #d4f5dc; color: #0a9b4b; }
+.s-pending .ico { background: #fce7a7; color: #a16207; }
+.s-reported .ico { background: #ffd7d7; color: #ef4444; }
+
+.list-wrap {
+    background: #eff3f7;
+    border: 1px solid #d2deed;
+    border-radius: 14px;
+    padding: 10px;
+}
+.rv {
+    background: #fff;
+    border: 1px solid #e0e7f2;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+.rv:last-child { margin-bottom: 0; }
+.rv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.rv-user { display: flex; gap: 8px; align-items: flex-start; }
+.rv-av {
+    width: 26px; height: 26px; border-radius: 999px; background: #e8edf5;
+    color: #7588a8; font-size: 10px; font-weight: 700; display: inline-flex;
+    align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.rv-name { margin: 0; color: #16345f; font-size: 13px !important; font-weight: 800; }
+.rv-event { margin: 0; color: #6b7f9d; font-size: 11px !important; }
+.rv-stars { margin: 2px 0 0; color: #f5b301; font-size: 10px !important; }
+.rv-stars .time { color: #7f90aa; margin-left: 8px; }
+.rv-status { font-size: 12px !important; font-weight: 700; }
+.rv-status-btn {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.rv-status.approved { color: #0b9a4c; }
+.rv-status.pending { color: #a16207; }
+.rv-status.reported { color: #ef4444; }
+
+.rv-text { margin: 8px 0 8px; color: #1f365c; font-size: 12px !important; }
+.rv-actions { display: flex; gap: 6px; }
+.btn-mini {
+    border: 1px solid #d5deea;
+    background: #fff;
+    color: #29497a;
+    border-radius: 8px;
+    font-size: 10px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.btn-mini.red {
+    border-color: #ffd3d3;
+    background: #fff1f1;
+    color: #ef4444;
+}
+
+@@media (max-width: 1000px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+}
+@@media (max-width: 680px) {
+    .stats { grid-template-columns: 1fr; }
+    .rv-head { flex-direction: column; }
+    .wf-grid { grid-template-columns: 1fr; }
+    .wf-split { grid-template-columns: 1fr; }
+}
+</style>
+}
+
+<div class="topbar">
+    <div>
+        <h1 class="ad-title">Reviews & Ratings</h1>
+        <p class="ad-sub">Monitor and moderate user reviews across all events.</p>
+    </div>
+    <button id="openWriteReview" class="write-btn" type="button"><i class="bi bi-pencil"></i> Write Review</button>
+</div>
+
+@if (TempData["AdminActionMessage"] is string actionMessage && !string.IsNullOrWhiteSpace(actionMessage))
+{
+    <p class="ad-sub" style="margin-top:0;color:#0c9b5a;font-weight:700;">@actionMessage</p>
+}
+
+<div id="writeReviewModal" class="modal-backdrop">
+    <form id="writeReviewForm" class="write-form" method="post" asp-controller="Admin" asp-action="AddReviewRating">
+        @Html.AntiForgeryToken()
+        <h2 id="reviewModalTitle" class="wf-title">Write Review</h2>
+        <input id="reviewId" name="id" type="hidden" />
+        <div class="wf-grid">
+            <div class="wf-field">
+                <label for="reviewerName">Reviewer Name</label>
+                <input id="reviewerName" name="reviewerName" type="text" required />
+            </div>
+            <div class="wf-field">
+                <label for="eventName">Event Name</label>
+                <input id="eventName" name="eventName" type="text" required />
+            </div>
+        </div>
+        <div class="wf-split">
+            <div class="wf-field">
+                <label for="rating">Rating</label>
+                <select id="rating" name="rating">
+                    <option value="5">5 ★★★★★</option>
+                    <option value="4">4 ★★★★☆</option>
+                    <option value="3">3 ★★★☆☆</option>
+                    <option value="2">2 ★★☆☆☆</option>
+                    <option value="1">1 ★☆☆☆☆</option>
+                </select>
+            </div>
+            <div class="wf-field">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="reported">Reported</option>
+                </select>
+            </div>
+        </div>
+        <div class="wf-field">
+            <label for="comment">Comment</label>
+            <textarea id="comment" name="comment" required></textarea>
+        </div>
+        <div class="wf-actions">
+            <button id="cancelWriteReview" class="btn-mini" type="button">Cancel</button>
+            <button id="reviewSubmitBtn" class="btn-publish" type="submit">Publish Review</button>
+        </div>
+    </form>
+</div>
+
+<section class="stats">
+    <article class="card stat s-total">
+        <div>
+            <div class="label">Total Reviews</div>
+            <div class="num">@Model.TotalReviews</div>
+        </div>
+        <span class="ico"><i class="bi bi-star"></i></span>
+    </article>
+    <article class="card stat s-approved">
+        <div>
+            <div class="label">Approved</div>
+            <div class="num">@Model.ApprovedCount</div>
+        </div>
+        <span class="ico"><i class="bi bi-check-lg"></i></span>
+    </article>
+    <article class="card stat s-pending">
+        <div>
+            <div class="label">Pending</div>
+            <div class="num">@Model.PendingCount</div>
+        </div>
+        <span class="ico"><i class="bi bi-eye"></i></span>
+    </article>
+    <article class="card stat s-reported">
+        <div>
+            <div class="label">Reported</div>
+            <div class="num">@Model.ReportedCount</div>
+        </div>
+        <span class="ico"><i class="bi bi-flag"></i></span>
+    </article>
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        const openBtn = document.getElementById("openWriteReview");
+        const cancelBtn = document.getElementById("cancelWriteReview");
+        const modal = document.getElementById("writeReviewModal");
+        const form = document.getElementById("writeReviewForm");
+        const reviewId = document.getElementById("reviewId");
+        const modalTitle = document.getElementById("reviewModalTitle");
+        const submitBtn = document.getElementById("reviewSubmitBtn");
+        const editButtons = Array.from(document.querySelectorAll(".js-edit-review"));
+        if (!openBtn || !cancelBtn || !modal || !form || !reviewId || !modalTitle || !submitBtn) return;
+
+        openBtn.addEventListener("click", function () {
+            form.reset();
+            reviewId.value = "";
+            modalTitle.textContent = "Write Review";
+            submitBtn.textContent = "Publish Review";
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+            const first = document.getElementById("reviewerName");
+            if (first) first.focus();
+        });
+
+        cancelBtn.addEventListener("click", function () {
+            modal.classList.remove("show");
+            document.body.style.overflow = "";
+        });
+
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                modal.classList.remove("show");
+                document.body.style.overflow = "";
+            }
+        });
+
+        editButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                const id = btn.getAttribute("data-id") || "";
+                const reviewer = btn.getAttribute("data-reviewer") || "";
+                const eventName = btn.getAttribute("data-event") || "";
+                const rating = btn.getAttribute("data-rating") || "5";
+                const status = btn.getAttribute("data-status") || "approved";
+                const comment = btn.getAttribute("data-comment") || "";
+
+                reviewId.value = id;
+                const reviewerInput = document.getElementById("reviewerName");
+                const eventInput = document.getElementById("eventName");
+                const ratingInput = document.getElementById("rating");
+                const statusInput = document.getElementById("status");
+                const commentInput = document.getElementById("comment");
+
+                if (reviewerInput) reviewerInput.value = reviewer;
+                if (eventInput) eventInput.value = eventName;
+                if (ratingInput) ratingInput.value = rating;
+                if (statusInput) statusInput.value = status;
+                if (commentInput) commentInput.value = comment;
+
+                modalTitle.textContent = "Edit Review";
+                submitBtn.textContent = "Update Review";
+                modal.classList.add("show");
+                document.body.style.overflow = "hidden";
+            });
+        });
+
+    })();
+</script>
+}
+
+<section class="list-wrap">
+    @foreach (var item in Model.Items.OrderByDescending(x => x.SortDateUtc))
+    {
+        var normalizedStatus = (item.Status ?? string.Empty).Trim().ToLowerInvariant();
+        var statusCss = normalizedStatus switch
+        {
+            "pending" => "pending",
+            "reported" => "reported",
+            _ => item.IsReported ? "reported" : "approved"
+        };
+        var statusLabel = statusCss switch
+        {
+            "pending" => "Pending",
+            "reported" => "Reported",
+            _ => "Approved"
+        };
+
+        <article class="rv">
+            <div class="rv-head">
+                <div class="rv-user">
+                    <span class="rv-av">@item.ReviewerInitials</span>
+                    <div>
+                        <p class="rv-name">@item.ReviewerName</p>
+                        <p class="rv-event">@item.EventName</p>
+                        <div class="rv-stars">
+                            @for (var i = 0; i < 5; i++)
+                            {
+                                <i class="bi @(i < item.Rating ? "bi-star-fill" : "bi-star")"></i>
+                            }
+                            <span class="time">@item.TimeAgo</span>
+                        </div>
+                    </div>
+                </div>
+                <form method="post" asp-controller="Admin" asp-action="UpdateReviewRatingStatus" style="margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <input type="hidden" name="status" value="approved" />
+                    <button class="rv-status rv-status-btn @statusCss" type="submit">@statusLabel</button>
+                </form>
+            </div>
+            <p class="rv-text">@item.Comment</p>
+            <div class="rv-actions">
+                <button
+                    class="btn-mini js-edit-review"
+                    type="button"
+                    data-id="@item.Id"
+                    data-reviewer="@item.ReviewerName"
+                    data-event="@item.EventName"
+                    data-rating="@item.Rating"
+                    data-status="@normalizedStatus"
+                    data-comment="@item.Comment">
+                    Edit
+                </button>
+                <form method="post" asp-controller="Admin" asp-action="UpdateReviewRatingStatus" style="margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <input type="hidden" name="status" value="reported" />
+                    <button class="btn-mini red" type="submit">Report</button>
+                </form>
+            </div>
+        </article>
+    }
+</section>

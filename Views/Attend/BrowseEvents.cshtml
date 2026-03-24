@@ -1,0 +1,239 @@
+@model List<Eventify.Models.EventItem>
+@{
+    Layout = "_AttendLayout";
+    ViewData["Title"] = "Browse Events";
+    var savedEventIds = ViewBag.SavedEventIds as HashSet<int> ?? new HashSet<int>();
+    var soldByEvent = ViewBag.SoldByEvent as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var capacityByEvent = ViewBag.CapacityByEvent as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+@section PageStyles {
+    <style>
+        .be-content { padding: 24px 22px; }
+        .be-content h1 { margin: 0; font-size: 45px; font-weight: 800; color: #1f2937; }
+        .be-sub { margin: 4px 0 18px; color: #4b5563; font-size: 15px; }
+        .be-search-row { display: grid; grid-template-columns: 1fr 98px; gap: 12px; margin-bottom: 16px; }
+        .be-search-wrap { position: relative; }
+        .be-search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .be-search-wrap input { width: 100%; height: 42px; border-radius: 11px; border: 1px solid #cfd6df; background: #f8fafc; padding: 0 14px 0 40px; font-size: 14px; outline: none; }
+        .be-filter-btn { border: 1px solid #cfd6df; background: #f8fafc; border-radius: 11px; color: #374151; font-weight: 600; font-size: 16px; cursor: pointer; }
+        .be-filter-panel { display: none; margin-bottom: 14px; background: #fff; border: 1px solid #dbe2ea; border-radius: 12px; padding: 12px; }
+        .be-filter-panel.open { display: block; }
+        .be-filter-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 10px; }
+        .be-filter-field label { display: block; margin-bottom: 5px; font-size: 12px; color: #4b5563; font-weight: 700; }
+        .be-filter-field input, .be-filter-field select { width: 100%; height: 38px; border-radius: 9px; border: 1px solid #cfd6df; background: #f8fafc; padding: 0 10px; font-size: 14px; color: #1f2937; }
+        .be-filter-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+        .be-filter-apply, .be-filter-reset { border-radius: 9px; border: 1px solid #cfd6df; height: 36px; padding: 0 12px; font-size: 13px; cursor: pointer; }
+        .be-filter-apply { background: linear-gradient(90deg, #3b82f6, #06b6d4); border-color: transparent; color: #fff; font-weight: 700; }
+        .be-filter-reset { background: #f8fafc; color: #374151; font-weight: 600; }
+        .be-cats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .be-cat { border: 1px solid #d6dbe4; border-radius: 999px; padding: 8px 16px; background: #f8fafc; color: #374151; cursor: pointer; font-size: 14px; }
+        .be-cat.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+        .be-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+        .be-card { background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; min-height: 350px; transition: transform .2s ease, box-shadow .2s ease; }
+        .be-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1); }
+        .be-image { position: relative; height: 170px; }
+        .be-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .be-tag { position: absolute; left: 10px; top: 10px; font-size: 12px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.35); }
+        .be-fav-form { position: absolute; right: 10px; top: 10px; margin: 0; }
+        .be-fav { width: 30px; height: 30px; border-radius: 50%; border: 0; background: #fff; cursor: pointer; color: #4b5563; font-size: 16px; }
+        .be-fav.active { color: #ef4444; }
+        .be-body { padding: 12px 16px 14px; display: flex; flex-direction: column; height: 100%; }
+        .be-title { margin: 0 0 8px; font-size: 17px; font-weight: 700; color: #1f2937; }
+        .be-line { margin: 0 0 6px; font-size: 14px; color: #4b5563; display: flex; align-items: center; gap: 8px; }
+        .be-line i { color: #6b7280; }
+        .be-rate { margin: 0 0 10px; font-size: 14px; color: #4b5563; display: flex; align-items: center; gap: 7px; }
+        .be-rate i { color: #fbbf24; }
+        .be-sales { margin: 0 0 8px; font-size: 13px; color: #334155; font-weight: 600; }
+        .be-progress { height: 8px; border-radius: 999px; background: #dbe4f1; overflow: hidden; margin-bottom: 10px; }
+        .be-progress > span { display: block; height: 100%; background: linear-gradient(90deg,#3b82f6,#06b6d4); border-radius: 999px; }
+        .be-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+        .be-price { margin: 0; font-size: 38px; font-weight: 800; color: #2563eb; }
+        .be-price.free { color: #16a34a; }
+        .be-details { border: 0; background: #3b82f6; color: #fff; border-radius: 9px; padding: 8px 14px; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .be-empty { display: none; margin-top: 10px; padding: 16px; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; color: #64748b; background: #f8fafc; font-size: 14px; }
+        .be-empty.show { display: block; }
+        @@media (max-width: 1200px) { .be-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @@media (max-width: 860px) { .be-content h1 { font-size: 34px; } }
+        @@media (max-width: 980px) { .be-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @@media (max-width: 640px) { .be-grid { grid-template-columns: 1fr; } .be-search-row { grid-template-columns: 1fr; } .be-filter-grid { grid-template-columns: 1fr; } .be-content { padding: 16px 12px; } }
+    </style>
+}
+
+<section class="be-content">
+    <h1>Browse Events</h1>
+    <p class="be-sub">Discover amazing events happening around you</p>
+
+    <div class="be-search-row">
+        <label class="be-search-wrap"><i class="bi bi-search"></i><input id="eventSearch" type="text" placeholder="Search events by name, location, or keyword..." /></label>
+        <button id="filterBtn" class="be-filter-btn" type="button" aria-expanded="false"><i class="bi bi-sliders2"></i> Filters</button>
+    </div>
+
+    <div id="filterPanel" class="be-filter-panel">
+        <div class="be-filter-grid">
+            <div class="be-filter-field">
+                <label for="locationFilter">Location</label>
+                <input id="locationFilter" type="text" placeholder="e.g. Rajkot, Mumbai" />
+            </div>
+            <div class="be-filter-field">
+                <label for="priceFilter">Price Type</label>
+                <select id="priceFilter">
+                    <option value="all">All</option>
+                    <option value="free">Free</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
+            <div class="be-filter-field">
+                <label for="dateFromFilter">Date From</label>
+                <input id="dateFromFilter" type="date" />
+            </div>
+            <div class="be-filter-field">
+                <label for="dateToFilter">Date To</label>
+                <input id="dateToFilter" type="date" />
+            </div>
+        </div>
+        <div class="be-filter-actions">
+            <button id="resetFiltersBtn" class="be-filter-reset" type="button">Reset</button>
+            <button id="applyFiltersBtn" class="be-filter-apply" type="button">Apply Filters</button>
+        </div>
+    </div>
+
+    <div id="catFilters" class="be-cats">
+        <button class="be-cat active" data-category="all" type="button">All</button>
+        @foreach (var category in Model.Select(m => m.Category).Distinct().OrderBy(c => c))
+        {
+            <button class="be-cat" data-category="@category.ToLower()" type="button">@category</button>
+        }
+    </div>
+
+    <div id="eventGrid" class="be-grid">
+        @foreach (var item in Model)
+        {
+            var isSaved = savedEventIds.Contains(item.Id);
+            var sold = soldByEvent.TryGetValue(item.Id, out var soldQty) ? soldQty : 0;
+            var capacity = capacityByEvent.TryGetValue(item.Id, out var cap) && cap > 0 ? cap : 200;
+            var progress = Math.Clamp((sold * 100.0) / capacity, 0, 100);
+            <article class="be-card"
+                     data-category="@item.Category.ToLower()"
+                     data-search="@($"{item.Title} {item.Location} {item.Category}".ToLower())"
+                     data-location="@item.Location.ToLower()"
+                     data-date="@item.StartDateTime.ToString("yyyy-MM-dd")"
+                     data-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="be-image">
+                    <img src="@item.ImageUrl" alt="@item.Title" />
+                    <span class="be-tag">@item.Category</span>
+                    <form asp-action="ToggleSaved" asp-controller="Attend" method="post" class="be-fav-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="eventId" value="@item.Id" />
+                        <button class="be-fav @(isSaved ? "active" : "")" type="submit" aria-label="Toggle wishlist">
+                            <i class="bi @(isSaved ? "bi-heart-fill" : "bi-heart")"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="be-body">
+                    <h3 class="be-title">@item.Title</h3>
+                    <p class="be-line"><i class="bi bi-calendar3"></i> @item.StartDateTime.ToString("MMM d, yyyy • h:mm tt")</p>
+                    <p class="be-line"><i class="bi bi-geo-alt-fill"></i> @item.Location</p>
+                    <p class="be-rate"><i class="bi bi-star-fill"></i> @item.Rating.ToString("0.0") (@item.ReviewCount reviews)</p>
+                    <p class="be-sales">Tickets Sold: @sold / @capacity</p>
+                    <div class="be-progress"><span style="width:@progress.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    <div class="be-footer">
+                        <p class="be-price @(item.Price == 0 ? "free" : "")">
+                            @if (item.Price == 0)
+                            {
+                                <text>Free</text>
+                            }
+                            else
+                            {
+                                <text>&#8377;@item.Price.ToString("0")</text>
+                            }
+                        </p>
+                        <a class="be-details" href="/Attend/EventDetails/@item.Id">View Details</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+    <div id="emptyState" class="be-empty">No events found for the selected filters.</div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("eventSearch");
+            const catButtons = Array.from(document.querySelectorAll(".be-cat"));
+            const cards = Array.from(document.querySelectorAll(".be-card"));
+            const filterBtn = document.getElementById("filterBtn");
+            const filterPanel = document.getElementById("filterPanel");
+            const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+            const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+            const locationFilter = document.getElementById("locationFilter");
+            const dateFromFilter = document.getElementById("dateFromFilter");
+            const dateToFilter = document.getElementById("dateToFilter");
+            const priceFilter = document.getElementById("priceFilter");
+            const emptyState = document.getElementById("emptyState");
+            let activeCategory = "all";
+
+            function applyFilters() {
+                const searchText = searchInput.value.trim().toLowerCase();
+                const locationText = locationFilter.value.trim().toLowerCase();
+                const dateFrom = dateFromFilter.value;
+                const dateTo = dateToFilter.value;
+                const priceType = priceFilter.value;
+                let visibleCount = 0;
+
+                cards.forEach(function (card) {
+                    const byCategory = activeCategory === "all" || card.dataset.category === activeCategory;
+                    const bySearch = !searchText || (card.dataset.search || "").includes(searchText);
+                    const byLocation = !locationText || (card.dataset.location || "").includes(locationText);
+                    const cardDate = card.dataset.date || "";
+                    const byDateFrom = !dateFrom || cardDate >= dateFrom;
+                    const byDateTo = !dateTo || cardDate <= dateTo;
+                    const cardPrice = Number(card.dataset.price || 0);
+                    const byPrice = priceType === "all"
+                        || (priceType === "free" && cardPrice <= 0)
+                        || (priceType === "paid" && cardPrice > 0);
+
+                    const isVisible = byCategory && bySearch && byLocation && byDateFrom && byDateTo && byPrice;
+                    card.style.display = isVisible ? "" : "none";
+                    if (isVisible) visibleCount += 1;
+                });
+
+                emptyState.classList.toggle("show", visibleCount === 0);
+            }
+
+            catButtons.forEach(function (button) {
+                button.addEventListener("click", function () {
+                    catButtons.forEach(function (b) { b.classList.remove("active"); });
+                    button.classList.add("active");
+                    activeCategory = button.dataset.category || "all";
+                    applyFilters();
+                });
+            });
+
+            searchInput.addEventListener("input", applyFilters);
+            filterBtn.addEventListener("click", function () {
+                const isOpen = filterPanel.classList.toggle("open");
+                filterBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                if (isOpen) {
+                    locationFilter.focus();
+                }
+            });
+            applyFiltersBtn.addEventListener("click", applyFilters);
+            resetFiltersBtn.addEventListener("click", function () {
+                locationFilter.value = "";
+                dateFromFilter.value = "";
+                dateToFilter.value = "";
+                priceFilter.value = "all";
+                applyFilters();
+            });
+
+            document.querySelectorAll(".be-fav-form").forEach(function (form) {
+                form.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                });
+            });
+        });
+    </script>
+}
+

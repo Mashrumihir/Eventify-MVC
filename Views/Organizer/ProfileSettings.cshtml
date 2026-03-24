@@ -1,0 +1,141 @@
+@model Eventify.ViewModels.OrganizerProfileSettingsViewModel
+@{
+    Layout = "_OrganizerLayout";
+    ViewData["Title"] = "Profile Settings";
+    var displayName = string.IsNullOrWhiteSpace(Model.FullName) ? "Organizer User" : Model.FullName.Trim();
+    var nameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = nameParts.Length switch
+    {
+        0 => "OU",
+        1 => nameParts[0].Length >= 2 ? nameParts[0][..2].ToUpperInvariant() : nameParts[0].ToUpperInvariant(),
+        _ => $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpperInvariant()
+    };
+}
+
+@section PageStyles {
+<style>
+.ps-wrap{padding:24px}.ps-head h1{margin:0;font-size: 25px;font-weight:800}.ps-head p{margin:6px 0 14px;color:#667085;font-size: 14px}
+.ps-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}.tabs{background:#fff;border:1px solid #d9dee6;border-radius:16px;padding:12px;display:grid;gap:8px;height:max-content}.tab{display:flex;gap:10px;align-items:center;text-decoration:none;color:#344054;border-radius:10px;padding:11px 12px;font-size: 14px}.tab.active{background:linear-gradient(90deg,#3b82f6,#22c5dc);color:#fff}
+.panel{background:#fff;border:1px solid #d9dee6;border-radius:16px;padding:18px}.panel h2{margin:0 0 12px;font-size: 22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.field label{font-size: 12px;color:#344054}.field input,.field textarea{border:1px solid #cfd4dc;border-radius:10px;padding:10px 12px;font-size: 13px}.field textarea{min-height:110px}
+.profile-top{display:flex;gap:14px;align-items:center;padding-bottom:12px;border-bottom:1px solid #dbe3ef;margin-bottom:12px}
+.avatar{width:64px;height:64px;border-radius:999px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;position:relative}
+.avatar img{width:100%;height:100%;border-radius:999px;object-fit:cover}
+.cam-btn{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#4b5563;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
+.upload-title{margin:0;color:#1e2d46;font-size:14px;font-weight:800}.upload-sub{margin:3px 0 4px;color:#5f7493;font-size:12px}.upload-link{color:#2563eb;text-decoration:none;font-size:12px;font-weight:600}.upload-input{display:none}
+.actions{display:flex;gap:10px;margin-top:8px}.btn{border:1px solid #cfd4dc;background:#fff;color:#344054;border-radius:10px;padding:10px 18px;font-size: 13px;text-decoration:none}.btn.primary{border:0;background:linear-gradient(90deg,#3b82f6,#22c5dc);color:#fff}
+.note{margin-top:10px;padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size: 13px;color:#475467;line-height:1.4}.tog{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #e5e7eb}.tog:first-child{border-top:0}.msg{padding:10px 12px;border-radius:10px;margin-bottom:10px;font-size: 12px}.ok{background:#dcfce7;color:#166534}.err{background:#fee2e2;color:#b91c1c}
+@@media(max-width:1100px){.ps-grid{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+</style>
+}
+
+<section class="ps-wrap">
+    <header class="ps-head">
+        <h1>Profile Settings</h1>
+        <p>Manage your account settings and preferences</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="msg ok">@Model.Message</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="msg err">@Model.Error</div>
+    }
+
+    <div class="ps-grid">
+        <nav class="tabs">
+            <a class="tab @(Model.ActiveTab == "edit" ? "active" : "")" href="@Url.Action("ProfileSettings", "Organizer", new { tab = "edit" })"><i class="bi bi-person-fill"></i> Edit Profile</a>
+            <a class="tab @(Model.ActiveTab == "password" ? "active" : "")" href="@Url.Action("ProfileSettings", "Organizer", new { tab = "password" })"><i class="bi bi-lock-fill"></i> Change Password</a>
+            <a class="tab @(Model.ActiveTab == "notifications" ? "active" : "")" href="@Url.Action("ProfileSettings", "Organizer", new { tab = "notifications" })"><i class="bi bi-bell-fill"></i> Notifications</a>
+        </nav>
+
+        <section class="panel">
+            @if (Model.ActiveTab == "edit")
+            {
+                <h2>Edit Profile</h2>
+                <form method="post" asp-action="SaveProfile" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input class="upload-input" id="profile-photo-input" type="file" name="profilePhoto" accept=".jpg,.jpeg,.png,.webp" />
+                    <div class="profile-top">
+                        <div class="avatar">
+                            @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoPath))
+                            {
+                                <img src="@Model.ProfilePhotoPath" alt="Profile photo" />
+                            }
+                            else
+                            {
+                                @initials
+                            }
+                            <label class="cam-btn" for="profile-photo-input" title="Upload Photo">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                        </div>
+                        <div>
+                            <p class="upload-title">Profile Photo</p>
+                            <p class="upload-sub">Upload a new photo or change existing</p>
+                            <a class="upload-link" href="#" id="profile-photo-link">Upload Photo</a>
+                        </div>
+                    </div>
+                    <div class="grid2">
+                        <div class="field"><label>Full Name</label><input asp-for="FullName" /></div>
+                        <div class="field"><label>Email Address</label><input asp-for="Email" readonly /></div>
+                        <div class="field"><label>Phone Number</label><input asp-for="PhoneNumber" /></div>
+                        <div class="field"><label>Location</label><input asp-for="Location" /></div>
+                        <div class="field"><label>Date of Birth</label><input asp-for="DateOfBirth" type="date" /></div>
+                    </div>
+                    <div class="field"><label>Bio</label><textarea asp-for="Bio"></textarea></div>
+                    <div class="actions"><button class="btn primary" type="submit">Save Changes</button><a class="btn" href="@Url.Action("ProfileSettings", "Organizer", new { tab = "edit" })">Cancel</a></div>
+                </form>
+            }
+            else if (Model.ActiveTab == "password")
+            {
+                <h2>Change Password</h2>
+                <form method="post" asp-action="ChangePassword">
+                    @Html.AntiForgeryToken()
+                    <div class="field"><label>Current Password</label><input asp-for="CurrentPassword" type="password" /></div>
+                    <div class="field"><label>New Password</label><input asp-for="NewPassword" type="password" /></div>
+                    <div class="field"><label>Confirm New Password</label><input asp-for="ConfirmPassword" type="password" /></div>
+                    <div class="note">
+                        Password must contain:
+                        <ul>
+                            <li>At least 8 characters long</li>
+                            <li>Include uppercase and lowercase letters</li>
+                            <li>Include at least one number</li>
+                            <li>Include at least one special character</li>
+                        </ul>
+                    </div>
+                    <div class="actions"><button class="btn primary" type="submit">Update Password</button><a class="btn" href="@Url.Action("ProfileSettings", "Organizer", new { tab = "password" })">Cancel</a></div>
+                </form>
+            }
+            else
+            {
+                <h2>Notification Preferences</h2>
+                <form method="post" asp-action="SaveNotificationPreferences">
+                    @Html.AntiForgeryToken()
+                    <div class="tog"><div><div style="font-size: 16px;font-weight:700">Email Notifications</div><div style="color:#667085;font-size: 13px">Receive updates via email</div></div><input asp-for="EmailNotifications" type="checkbox" /></div>
+                    <div class="tog"><div><div style="font-size: 16px;font-weight:700">Push Notifications</div><div style="color:#667085;font-size: 13px">Receive push notifications on your device</div></div><input asp-for="PushNotifications" type="checkbox" /></div>
+                    <div class="tog"><div><div style="font-size: 16px;font-weight:700">Event Reminders</div><div style="color:#667085;font-size: 13px">Get reminded about upcoming events</div></div><input asp-for="EventReminders" type="checkbox" /></div>
+                    <div class="tog"><div><div style="font-size: 16px;font-weight:700">Promotions & Offers</div><div style="color:#667085;font-size: 13px">Receive promotional emails and special offers</div></div><input asp-for="PromotionsOffers" type="checkbox" /></div>
+                    <div class="actions"><button class="btn primary" type="submit">Save Preferences</button></div>
+                </form>
+            }
+        </section>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+(() => {
+    const input = document.getElementById("profile-photo-input");
+    const link = document.getElementById("profile-photo-link");
+    if (!input || !link) return;
+    link.addEventListener("click", (e) => {
+        e.preventDefault();
+        input.click();
+    });
+})();
+</script>
+}
+
