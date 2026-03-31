@@ -39,7 +39,10 @@ public class AdminUserRowViewModel
     public string Initials { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+<<<<<<< HEAD
     public string PasswordText { get; set; } = string.Empty;
+=======
+>>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
     public string Role { get; set; } = "attend";
     public string Status { get; set; } = "active";
     public DateTime JoinDate { get; set; }
