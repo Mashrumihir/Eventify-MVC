@@ -48,9 +48,32 @@ using (var scope = app.Services.CreateScope())
             FullName TEXT NOT NULL,
             Email TEXT NOT NULL,
             PasswordHash TEXT NOT NULL,
+            PasswordText TEXT NOT NULL DEFAULT '',
             Role TEXT NOT NULL,
             CreatedAtUtc TEXT NOT NULL
         );
+        """);
+    try
+    {
+        db.Database.ExecuteSqlRaw(
+            """
+            ALTER TABLE Users ADD COLUMN PasswordText TEXT NOT NULL DEFAULT '';
+            """);
+    }
+    catch
+    {
+    }
+    db.Database.ExecuteSqlRaw(
+        """
+        UPDATE Users
+        SET PasswordText = CASE
+            WHEN lower(Email) = 'attend@eventify.com' THEN 'Attend@2026!Go'
+            WHEN lower(Email) = 'organizer@eventify.com' THEN 'Organizer@2026!Go'
+            WHEN lower(Email) = 'admin@eventify.com' THEN 'Admin@2026!Go'
+            ELSE PasswordText
+        END
+        WHERE IFNULL(PasswordText, '') = ''
+          AND lower(Email) IN ('attend@eventify.com', 'organizer@eventify.com', 'admin@eventify.com');
         """);
     db.Database.ExecuteSqlRaw(
         """

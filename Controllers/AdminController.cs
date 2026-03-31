@@ -191,6 +191,7 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
                 Initials = GetInitials(u.FullName),
                 FullName = u.FullName,
                 Email = u.Email,
+                PasswordText = u.PasswordText,
                 Role = u.Role,
                 Status = string.Equals(u.Role, "blocked", StringComparison.OrdinalIgnoreCase) ? "blocked" : "active",
                 JoinDate = u.CreatedAtUtc.ToLocalTime(),
@@ -337,6 +338,7 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
             FullName = finalName,
             Email = finalEmail,
             PasswordHash = Eventify.Utilities.PasswordHasher.Hash(finalPassword),
+            PasswordText = finalPassword,
             Role = role,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -810,11 +812,24 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
                     FullName TEXT NOT NULL,
                     Email TEXT NOT NULL,
                     PasswordHash TEXT NOT NULL,
+                    PasswordText TEXT NOT NULL DEFAULT '',
                     Role TEXT NOT NULL,
                     CreatedAtUtc TEXT NOT NULL
                 );
                 """;
             await createCmd.ExecuteNonQueryAsync();
+        }
+
+        await using (var alterCmd = conn.CreateCommand())
+        {
+            alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN PasswordText TEXT NOT NULL DEFAULT '';";
+            try
+            {
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch
+            {
+            }
         }
 
         await using (var indexCmd = conn.CreateCommand())
@@ -826,17 +841,19 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
         await using var insertCmd = conn.CreateCommand();
         insertCmd.CommandText =
             """
-            INSERT INTO Users (FullName, Email, PasswordHash, Role, CreatedAtUtc)
-            VALUES ($fullName, $email, $passwordHash, $role, $createdAtUtc)
+            INSERT INTO Users (FullName, Email, PasswordHash, PasswordText, Role, CreatedAtUtc)
+            VALUES ($fullName, $email, $passwordHash, $passwordText, $role, $createdAtUtc)
             ON CONFLICT(Email) DO UPDATE SET
                 FullName = excluded.FullName,
                 PasswordHash = excluded.PasswordHash,
+                PasswordText = excluded.PasswordText,
                 Role = excluded.Role,
                 CreatedAtUtc = excluded.CreatedAtUtc;
             """;
         insertCmd.Parameters.AddWithValue("$fullName", user.FullName);
         insertCmd.Parameters.AddWithValue("$email", user.Email);
         insertCmd.Parameters.AddWithValue("$passwordHash", user.PasswordHash);
+        insertCmd.Parameters.AddWithValue("$passwordText", user.PasswordText ?? string.Empty);
         insertCmd.Parameters.AddWithValue("$role", user.Role);
         insertCmd.Parameters.AddWithValue("$createdAtUtc", user.CreatedAtUtc.ToString("O"));
         await insertCmd.ExecuteNonQueryAsync();

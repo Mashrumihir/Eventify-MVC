@@ -83,6 +83,7 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
             FullName = model.FullName.Trim(),
             Email = normalizedEmail,
             PasswordHash = PasswordHasher.Hash(model.Password),
+            PasswordText = model.Password,
             Role = model.Role
         };
 

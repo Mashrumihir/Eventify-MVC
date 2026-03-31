@@ -918,6 +918,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         }
 
         user.PasswordHash = newHash;
+        user.PasswordText = input.NewPassword;
         await db.SaveChangesAsync();
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
 
@@ -935,6 +936,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
                 FullName = "Meet Modhvadiya",
                 Email = organizerEmail,
                 PasswordHash = PasswordHasher.Hash("Organizer@2026!Go"),
+                PasswordText = "Organizer@2026!Go",
                 Role = "organizer"
             };
             db.Users.Add(user);

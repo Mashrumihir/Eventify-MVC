@@ -745,6 +745,7 @@ public class AttendController(EventifyDbContext db, IWebHostEnvironment env, ICo
         }
 
         user.PasswordHash = newHash;
+        user.PasswordText = input.NewPassword;
         await db.SaveChangesAsync();
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
 
@@ -1396,6 +1397,7 @@ public class AttendController(EventifyDbContext db, IWebHostEnvironment env, ICo
                 FullName = HttpContext.Session.GetString("UserFullName") ?? "Attend User",
                 Email = currentUserEmail,
                 PasswordHash = PasswordHasher.Hash("Attend@2026!Go"),
+                PasswordText = "Attend@2026!Go",
                 Role = "attend"
             };
             db.Users.Add(user);
