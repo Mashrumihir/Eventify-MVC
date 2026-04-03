@@ -32,10 +32,7 @@ public static class RoleDatabaseMirror
                     FullName TEXT NOT NULL,
                     Email TEXT NOT NULL,
                     PasswordHash TEXT NOT NULL,
-<<<<<<< HEAD
                     PasswordText TEXT NOT NULL DEFAULT '',
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
                     Role TEXT NOT NULL,
                     CreatedAtUtc TEXT NOT NULL
                 );
@@ -43,7 +40,6 @@ public static class RoleDatabaseMirror
             await createCmd.ExecuteNonQueryAsync();
         }
 
-<<<<<<< HEAD
         await using (var alterCmd = conn.CreateCommand())
         {
             alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN PasswordText TEXT NOT NULL DEFAULT '';";
@@ -55,9 +51,6 @@ public static class RoleDatabaseMirror
             {
             }
         }
-
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
         await using (var indexCmd = conn.CreateCommand())
         {
             indexCmd.CommandText = "CREATE UNIQUE INDEX IF NOT EXISTS IX_Users_Email ON Users (Email);";
@@ -67,30 +60,19 @@ public static class RoleDatabaseMirror
         await using var insertCmd = conn.CreateCommand();
         insertCmd.CommandText =
             """
-<<<<<<< HEAD
             INSERT INTO Users (FullName, Email, PasswordHash, PasswordText, Role, CreatedAtUtc)
             VALUES ($fullName, $email, $passwordHash, $passwordText, $role, $createdAtUtc)
             ON CONFLICT(Email) DO UPDATE SET
                 FullName = excluded.FullName,
                 PasswordHash = excluded.PasswordHash,
                 PasswordText = excluded.PasswordText,
-=======
-            INSERT INTO Users (FullName, Email, PasswordHash, Role, CreatedAtUtc)
-            VALUES ($fullName, $email, $passwordHash, $role, $createdAtUtc)
-            ON CONFLICT(Email) DO UPDATE SET
-                FullName = excluded.FullName,
-                PasswordHash = excluded.PasswordHash,
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
                 Role = excluded.Role,
                 CreatedAtUtc = excluded.CreatedAtUtc;
             """;
         insertCmd.Parameters.AddWithValue("$fullName", user.FullName);
         insertCmd.Parameters.AddWithValue("$email", user.Email);
         insertCmd.Parameters.AddWithValue("$passwordHash", user.PasswordHash);
-<<<<<<< HEAD
         insertCmd.Parameters.AddWithValue("$passwordText", user.PasswordText ?? string.Empty);
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
         insertCmd.Parameters.AddWithValue("$role", user.Role);
         insertCmd.Parameters.AddWithValue("$createdAtUtc", user.CreatedAtUtc.ToString("O"));
         await insertCmd.ExecuteNonQueryAsync();

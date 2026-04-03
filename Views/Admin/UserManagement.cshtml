@@ -64,11 +64,8 @@
 }
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:62px !important}
-<<<<<<< HEAD
 .pw-display{position:relative;padding-right:58px}
 .pw-value{display:block;overflow:hidden;text-overflow:ellipsis}
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
 .pw-toggle{
     position:absolute;
     right:8px;
@@ -98,15 +95,9 @@
     border-radius:14px;
     background:#fff;
 }
-<<<<<<< HEAD
 .thead,.tr{display:grid;grid-template-columns:170px minmax(220px,1.5fr) minmax(180px,1.1fr) .9fr .9fr .8fr 160px;gap:0;align-items:center}
 .tbl.no-bookings .thead,
 .tbl.no-bookings .tr{grid-template-columns:170px minmax(240px,1.7fr) minmax(190px,1.2fr) .95fr .95fr 160px}
-=======
-.thead,.tr{display:grid;grid-template-columns:170px minmax(220px,1.7fr) 1fr 1fr .8fr 140px;gap:0;align-items:center}
-.tbl.no-bookings .thead,
-.tbl.no-bookings .tr{grid-template-columns:170px minmax(240px,1.9fr) 1fr 1fr 140px}
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
 .thead{background:#355395;color:#fff;font-size:12px;font-weight:700;border-bottom:1px solid #cdd9ec}
 .tr{background:#fff;border-bottom:1px solid #d6e0ef;font-size:11px}
 .tr:last-child{border-bottom:0}
@@ -148,13 +139,8 @@
     color:#dc2626;
     background:#fff5f5;
 }
-<<<<<<< HEAD
 @@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.2fr) minmax(150px,1fr) .85fr .85fr .6fr 140px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.4fr) minmax(150px,1.05fr) .9fr .9fr 140px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.search input{font-size:12px}}
 @@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.15fr 1fr .85fr .85fr .7fr 120px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.2fr 1fr .9fr .9fr 120px}.initial{width:24px;height:24px;font-size:10px}}
-=======
-@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.3fr) .9fr .9fr .6fr 130px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.5fr) .9fr .9fr 130px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.search input{font-size:12px}}
-@@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.2fr .9fr .9fr .7fr 120px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.3fr .9fr .9fr 120px}.initial{width:24px;height:24px;font-size:10px}}
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
 </style>
 }
 
@@ -191,10 +177,7 @@
     <div class="thead">
         <div>User</div>
         <div>Email</div>
-<<<<<<< HEAD
         <div>Password</div>
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
         <div>Status</div>
         <div>Join Date</div>
         @if (showBookings)
@@ -210,7 +193,6 @@
         <div class="tr">
             <div class="usercell"><span class="initial">@u.Initials</span> <strong>@u.FullName</strong></div>
             <div>@u.Email</div>
-<<<<<<< HEAD
             <div class="pw-display">
                 <span class="pw-value" data-password-value>@(string.IsNullOrWhiteSpace(u.PasswordText) ? "Not available" : "********")</span>
                 @if (!string.IsNullOrWhiteSpace(u.PasswordText))
@@ -218,8 +200,6 @@
                     <button class="pw-toggle" type="button" data-password-text="@u.PasswordText">Show</button>
                 }
             </div>
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
             <div class="status @u.Status">@u.Status</div>
             <div>@u.JoinDate.ToString("yyyy-MM-dd")</div>
             @if (showBookings)
@@ -301,7 +281,6 @@
                 pwToggle.textContent = show ? "Hide" : "Show";
             });
         }
-<<<<<<< HEAD
 
         document.querySelectorAll(".pw-display .pw-toggle[data-password-text]").forEach(function (toggleBtn) {
             toggleBtn.addEventListener("click", function () {
@@ -315,9 +294,6 @@
                 toggleBtn.textContent = isHidden ? "Hide" : "Show";
             });
         });
-
-=======
->>>>>>> d586b73cf26633dda84468e56e452b3d2ddcb99f
     })();
 </script>
 }
