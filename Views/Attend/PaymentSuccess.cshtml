@@ -78,7 +78,7 @@
         </div>
 
         <div class="ps-actions">
-            <a class="ps-btn-primary" href="@Url.Action("DownloadInvoicePdf", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId })">
+            <a class="ps-btn-primary" href="@Url.Action("DownloadTicket", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId })">
                 <i class="bi bi-download"></i>Download Ticket
             </a>
             <button type="button"

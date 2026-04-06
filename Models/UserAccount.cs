@@ -9,4 +9,7 @@ public class UserAccount
     public string PasswordText { get; set; } = string.Empty;
     public string Role { get; set; } = "attend";
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? PasswordChangedAtUtc { get; set; }
+    public bool IsEmailVerified { get; set; }
+    public DateTime? EmailVerifiedAtUtc { get; set; }
 }

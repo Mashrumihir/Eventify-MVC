@@ -746,6 +746,7 @@ public class AttendController(EventifyDbContext db, IWebHostEnvironment env, ICo
 
         user.PasswordHash = newHash;
         user.PasswordText = input.NewPassword;
+        user.PasswordChangedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync();
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
 
@@ -1114,30 +1115,42 @@ public class AttendController(EventifyDbContext db, IWebHostEnvironment env, ICo
 
     public async Task<IActionResult> DownloadTicket(int id, string? ticket, decimal? total, int qty = 1, string? bookingId = null)
     {
-        var eventItem = await db.Events.FirstOrDefaultAsync(e => e.Id == id);
+        var currentUserEmail = ResolveAttendEmail();
+        var booking = await db.MyBookings
+            .Where(b => b.UserEmail == currentUserEmail)
+            .FirstOrDefaultAsync(b =>
+                (!string.IsNullOrWhiteSpace(bookingId) && b.BookingCode == bookingId) ||
+                (string.IsNullOrWhiteSpace(bookingId) && b.EventItemId == id));
+
+        if (booking is null)
+        {
+            return RedirectToAction(nameof(MyBookings));
+        }
+
+        var eventItem = await db.Events.FirstOrDefaultAsync(e => e.Id == booking.EventItemId);
         if (eventItem is null)
         {
             return RedirectToAction(nameof(BrowseEvents));
         }
 
-        var resolvedTicket = string.IsNullOrWhiteSpace(ticket) ? "Regular" : ticket;
-        var resolvedQty = qty < 1 ? 1 : qty;
-        var resolvedTotal = total ?? (eventItem.Price > 0 ? eventItem.Price : 99);
-        var resolvedBookingId = string.IsNullOrWhiteSpace(bookingId)
-            ? $"EVT-{DateTime.UtcNow:yyyyMMdd}-{eventItem.Id:000}"
-            : bookingId;
+        var resolvedTicket = string.IsNullOrWhiteSpace(booking.TicketName) ? (string.IsNullOrWhiteSpace(ticket) ? "Regular" : ticket) : booking.TicketName;
+        var resolvedQty = booking.Quantity > 0 ? booking.Quantity : (qty < 1 ? 1 : qty);
+        var resolvedTotal = booking.TotalAmount > 0 ? booking.TotalAmount : (total ?? eventItem.Price);
+        var resolvedBookingId = string.IsNullOrWhiteSpace(booking.BookingCode) ? $"BK{booking.Id:000000}" : booking.BookingCode;
+        var statusText = string.IsNullOrWhiteSpace(booking.Status) ? "Booked" : booking.Status;
 
         var ticketText = $"""
         Eventify - Ticket Confirmation
         ------------------------------
         Booking ID: {resolvedBookingId}
+        Status: {statusText}
         Event: {eventItem.Title}
         Date: {eventItem.StartDateTime:MMMM d, yyyy}
         Time: {eventItem.StartDateTime:h:mm tt}
         Location: {eventItem.Location}
         Ticket: {resolvedTicket}
         Quantity: {resolvedQty}
-        Total Paid: ?{resolvedTotal:0.00}
+        Total Paid: Rs. {resolvedTotal:0.00}
         ------------------------------
         Please carry this ticket and a valid ID proof at the venue.
         """;
@@ -1409,9 +1422,7 @@ public class AttendController(EventifyDbContext db, IWebHostEnvironment env, ICo
         {
             settings = new AttendProfileSetting
             {
-                UserEmail = user.Email,
-                PhoneNumber = "+91 90000 00000",
-                Location = "Rajkot, Gujarat"
+                UserEmail = user.Email
             };
             db.AttendProfileSettings.Add(settings);
             await db.SaveChangesAsync();

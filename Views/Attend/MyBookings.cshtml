@@ -144,7 +144,7 @@
                             else
                             {
                                 <a class="mb-btn primary"
-                                   href="@Url.Action("DownloadInvoicePdf", "Attend", new { id = item.EventId, ticket = item.TicketLabel, total = ticketAmount, qty = item.Quantity, bookingId = item.BookingCode })">
+                                   href="@Url.Action("DownloadTicket", "Attend", new { id = item.EventId, ticket = item.TicketLabel, total = ticketAmount, qty = item.Quantity, bookingId = item.BookingCode })">
                                     Download
                                 </a>
                                 <form method="post" action="@Url.Action("CancelBooking", "Attend")">

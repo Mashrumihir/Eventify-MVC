@@ -4,7 +4,6 @@ using Eventify.Utilities;
 using Eventify.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Eventify.Controllers;
@@ -22,6 +21,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         ViewData["OrgNav"] = "dashboard";
 
         var bookedRows = await db.MyBookings
+            .AsNoTracking()
             .Where(b => b.Status == "Booked")
             .Join(
                 db.Events,
@@ -36,7 +36,12 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         var ticketsSold = bookedRows.Sum(x => Math.Max(1, x.Booking.Quantity));
         var totalEvents = await db.Events.CountAsync();
         var bookingDates = await db.Bookings
+            .AsNoTracking()
             .Select(b => b.CreatedAtUtc)
+            .ToListAsync();
+        var eventDates = await db.Events
+            .AsNoTracking()
+            .Select(e => e.StartDateTime)
             .ToListAsync();
 
         var today = DateTime.Today;
@@ -78,6 +83,10 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         var previousVisitors = bookingDates.Count(d =>
             d.ToLocalTime().Date >= previousStart &&
             d.ToLocalTime().Date <= previousEnd);
+        var currentEvents = eventDates.Count(d => d.Date >= currentStart);
+        var previousEvents = eventDates.Count(d =>
+            d.Date >= previousStart &&
+            d.Date <= previousEnd);
         var currentConversion = currentVisitors == 0 ? 0 : (currentTickets * 100m) / Math.Max(currentVisitors, 1);
         var previousConversion = previousVisitors == 0 ? 0 : (previousTickets * 100m) / Math.Max(previousVisitors, 1);
 
@@ -95,7 +104,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
             ConversionRate = conversion,
             RevenueGrowth = Growth(currentRevenue, previousRevenue),
             TicketsGrowth = Growth(currentTickets, previousTickets),
-            EventsGrowth = 0,
+            EventsGrowth = Growth(currentEvents, previousEvents),
             ConversionGrowth = Growth(currentConversion, previousConversion),
             SalesSeries = salesSeries,
             RevenueSeries = revenueSeries,
@@ -174,7 +183,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateEvent(OrganizerCreateEventViewModel model, IFormFile? bannerFile, List<IFormFile>? galleryFiles)
+    public async Task<IActionResult> CreateEvent(OrganizerCreateEventViewModel model, IFormFile? bannerFile)
     {
         ViewData["Title"] = model.Id.HasValue ? "Edit Event" : "Create Event";
         ViewData["OrgNav"] = "create";
@@ -299,38 +308,10 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
             db.OrganizerEventConfigs.Add(config);
         }
 
-        var galleryPaths = new List<string>();
-        if (galleryFiles is not null && galleryFiles.Count > 0)
-        {
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "events", "gallery");
-            Directory.CreateDirectory(folder);
-            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
-            foreach (var file in galleryFiles.Where(f => f is not null && f.Length > 0).Take(10))
-            {
-                var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
-                if (string.IsNullOrWhiteSpace(ext) || !allowed.Contains(ext))
-                {
-                    continue;
-                }
-
-                var fileName = $"{Guid.NewGuid():N}{ext}";
-                var path = Path.Combine(folder, fileName);
-                await using (var stream = System.IO.File.Create(path))
-                {
-                    await file.CopyToAsync(stream);
-                }
-                galleryPaths.Add($"/uploads/events/gallery/{fileName}");
-            }
-        }
-
         config.AvailableQuantity = Math.Max(0, model.AvailableQuantity);
         config.EarlyBirdDiscount = model.EarlyBirdDiscount;
         config.EarlyBirdPrice = Math.Max(0m, model.EarlyBirdPrice);
         config.RefundPolicy = model.RefundPolicy?.Trim() ?? string.Empty;
-        if (galleryPaths.Count > 0)
-        {
-            config.GalleryImagesJson = JsonSerializer.Serialize(galleryPaths);
-        }
 
         await db.SaveChangesAsync();
 
@@ -919,6 +900,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
 
         user.PasswordHash = newHash;
         user.PasswordText = input.NewPassword;
+        user.PasswordChangedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync();
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
 

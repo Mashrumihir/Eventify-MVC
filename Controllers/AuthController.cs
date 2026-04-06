@@ -9,6 +9,9 @@ namespace Eventify.Controllers;
 
 public class AuthController(EventifyDbContext db, IConfiguration config) : Controller
 {
+    private const string VerifyEmailPurpose = "verify-email";
+    private const string ResetPasswordPurpose = "reset-password";
+
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
@@ -44,6 +47,14 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
         {
             ModelState.AddModelError(string.Empty, "Invalid credentials.");
             return View(model);
+        }
+
+        if (!user.IsEmailVerified)
+        {
+            var verificationCode = await GenerateAuthCodeAsync(user.Email, VerifyEmailPurpose);
+            TempData["AuthDevCode"] = $"Verification code: {verificationCode}";
+            TempData["AuthMessage"] = "Please verify your email before signing in.";
+            return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = VerifyEmailPurpose });
         }
 
         HttpContext.Session.SetString("UserEmail", user.Email);
@@ -84,15 +95,171 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
             Email = normalizedEmail,
             PasswordHash = PasswordHasher.Hash(model.Password),
             PasswordText = model.Password,
-            Role = model.Role
+            Role = model.Role,
+            PasswordChangedAtUtc = DateTime.UtcNow,
+            IsEmailVerified = false
         };
 
         db.Users.Add(user);
         await db.SaveChangesAsync();
+        await EnsureProfileExistsForRoleAsync(user);
+        await RoleDatabaseMirror.MirrorUserAsync(config, user);
+        var registrationCode = await GenerateAuthCodeAsync(user.Email, VerifyEmailPurpose);
+        TempData["AuthDevCode"] = $"Verification code: {registrationCode}";
+
+        TempData["AuthMessage"] = "Registration successful. Enter the verification code to continue.";
+        return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = VerifyEmailPurpose });
+    }
+
+    public IActionResult ForgotPassword()
+    {
+        ViewData["Title"] = "Forgot Password";
+        return View(new ForgotPasswordViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        ViewData["Title"] = "Forgot Password";
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var normalizedEmail = model.Email.Trim().ToLowerInvariant();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (user is null)
+        {
+            ModelState.AddModelError(nameof(model.Email), "We couldn't find an account for that email.");
+            return View(model);
+        }
+
+        var resetCode = await GenerateAuthCodeAsync(user.Email, ResetPasswordPurpose);
+        TempData["AuthDevCode"] = $"Reset code: {resetCode}";
+        TempData["AuthMessage"] = "Reset code generated. Enter it below to continue.";
+        return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = ResetPasswordPurpose });
+    }
+
+    public IActionResult VerifyEmail(string email, string purpose = VerifyEmailPurpose)
+    {
+        ViewData["Title"] = purpose == ResetPasswordPurpose ? "Verify Reset Code" : "Verify Email";
+        var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+        var resolvedPurpose = string.IsNullOrWhiteSpace(purpose) ? VerifyEmailPurpose : purpose;
+
+        return View(new VerifyEmailViewModel
+        {
+            Email = normalizedEmail,
+            Purpose = resolvedPurpose,
+            DemoCode = GetLatestDemoCode(normalizedEmail, resolvedPurpose),
+            Code = GetLatestDemoCode(normalizedEmail, resolvedPurpose)
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
+    {
+        ViewData["Title"] = model.Purpose == ResetPasswordPurpose ? "Verify Reset Code" : "Verify Email";
+        var latestDemoCode = GetLatestDemoCode(model.Email, model.Purpose);
+        if (string.IsNullOrWhiteSpace(model.Code) && !string.IsNullOrWhiteSpace(latestDemoCode))
+        {
+            model.Code = latestDemoCode;
+            ModelState.Remove(nameof(model.Code));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.DemoCode = latestDemoCode;
+            return View(model);
+        }
+
+        var normalizedEmail = model.Email.Trim().ToLowerInvariant();
+        var code = NormalizeCode(model.Code);
+        var authCode = await db.AuthCodes
+            .Where(x => x.Email.ToLower() == normalizedEmail && x.Purpose == model.Purpose && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (authCode is null || authCode.ExpiresAtUtc < DateTime.UtcNow || authCode.Code != code)
+        {
+            ModelState.AddModelError(nameof(model.Code), "Invalid or expired code.");
+            model.DemoCode = latestDemoCode;
+            return View(model);
+        }
+
+        authCode.IsUsed = true;
+        authCode.UsedAtUtc = DateTime.UtcNow;
+
+        if (model.Purpose == VerifyEmailPurpose)
+        {
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            if (user is not null)
+            {
+                user.IsEmailVerified = true;
+                user.EmailVerifiedAtUtc = DateTime.UtcNow;
+            }
+
+            await db.SaveChangesAsync();
+            return RedirectToAction(nameof(EmailVerified));
+        }
+
+        await db.SaveChangesAsync();
+        return RedirectToAction(nameof(ResetPassword), new { email = normalizedEmail });
+    }
+
+    public IActionResult EmailVerified()
+    {
+        ViewData["Title"] = "Email Verified";
+        return View();
+    }
+
+    public IActionResult ResetPassword(string email)
+    {
+        ViewData["Title"] = "Reset Password";
+        return View(new ResetPasswordViewModel { Email = email ?? string.Empty });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        ViewData["Title"] = "Reset Password";
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var normalizedEmail = model.Email.Trim().ToLowerInvariant();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (user is null)
+        {
+            ModelState.AddModelError(string.Empty, "Account not found.");
+            return View(model);
+        }
+
+        user.PasswordHash = PasswordHasher.Hash(model.Password);
+        user.PasswordText = model.Password;
+        user.PasswordChangedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync();
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
 
-        TempData["AuthMessage"] = "Registration successful.";
+        TempData["AuthMessage"] = "Password reset successful. You can sign in now.";
         return RedirectToAction(nameof(Login));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendCode(string email, string purpose)
+    {
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var latestCode = await GenerateAuthCodeAsync(email.Trim().ToLowerInvariant(), purpose);
+            TempData["AuthDevCode"] = $"{(purpose == ResetPasswordPurpose ? "Reset" : "Verification")} code: {latestCode}";
+        }
+
+        TempData["AuthMessage"] = "A new verification code has been generated.";
+        return RedirectToAction(nameof(VerifyEmail), new { email, purpose });
     }
 
     private IActionResult RedirectToRolePage(string role)
@@ -103,6 +270,90 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
             "admin" => RedirectToAction("Index", "Admin"),
             _ => RedirectToAction("Dashboard", "Attend")
         };
+    }
+
+    private async Task<string> GenerateAuthCodeAsync(string email, string purpose)
+    {
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var activeCodes = await db.AuthCodes
+            .Where(x => x.Email.ToLower() == normalizedEmail && x.Purpose == purpose && !x.IsUsed)
+            .ToListAsync();
+
+        foreach (var activeCode in activeCodes)
+        {
+            activeCode.IsUsed = true;
+            activeCode.UsedAtUtc = DateTime.UtcNow;
+        }
+
+        var code = Random.Shared.Next(100000, 999999).ToString();
+
+        db.AuthCodes.Add(new AuthCode
+        {
+            Email = normalizedEmail,
+            Purpose = purpose,
+            Code = code,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(10)
+        });
+
+        await db.SaveChangesAsync();
+        return code;
+    }
+
+    private static string NormalizeCode(string code)
+    {
+        return new string((code ?? string.Empty).Where(char.IsDigit).ToArray());
+    }
+
+    private async Task EnsureProfileExistsForRoleAsync(UserAccount user)
+    {
+        if (string.Equals(user.Role, "attend", StringComparison.OrdinalIgnoreCase))
+        {
+            var existingAttendProfile = await db.AttendProfileSettings
+                .FirstOrDefaultAsync(x => x.UserEmail == user.Email);
+
+            if (existingAttendProfile is null)
+            {
+                db.AttendProfileSettings.Add(new AttendProfileSetting
+                {
+                    UserEmail = user.Email
+                });
+                await db.SaveChangesAsync();
+            }
+
+            return;
+        }
+
+        if (string.Equals(user.Role, "organizer", StringComparison.OrdinalIgnoreCase))
+        {
+            var existingOrganizerProfile = await db.OrganizerProfileSettings
+                .FirstOrDefaultAsync(x => x.UserEmail == user.Email);
+
+            if (existingOrganizerProfile is null)
+            {
+                db.OrganizerProfileSettings.Add(new OrganizerProfileSetting
+                {
+                    UserEmail = user.Email
+                });
+                await db.SaveChangesAsync();
+            }
+        }
+    }
+
+    private string GetLatestDemoCode(string email, string purpose)
+    {
+        var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+        var normalizedPurpose = string.IsNullOrWhiteSpace(purpose) ? VerifyEmailPurpose : purpose;
+
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            return string.Empty;
+        }
+
+        return db.AuthCodes
+            .Where(x => x.Email.ToLower() == normalizedEmail && x.Purpose == normalizedPurpose && !x.IsUsed && x.ExpiresAtUtc >= DateTime.UtcNow)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Select(x => x.Code)
+            .FirstOrDefault() ?? string.Empty;
     }
 }
 

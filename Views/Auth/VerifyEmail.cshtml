@@ -1,0 +1,138 @@
+@model Eventify.ViewModels.Auth.VerifyEmailViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Verify Email";
+    var heading = Model.Purpose == "reset-password" ? "Verify Reset Code" : "Verify Your Email";
+    var subtitle = Model.Purpose == "reset-password" ? "We have sent a reset code to your email" : "We have sent a code to your email";
+    var authDevCode = string.IsNullOrWhiteSpace(Model.DemoCode)
+        ? string.Empty
+        : $"{(Model.Purpose == "reset-password" ? "Reset" : "Verification")} code: {Model.DemoCode}";
+    var authDevDigits = Model.DemoCode ?? string.Empty;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventify - Verify</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        :root{--bg1:#293f96;--bg2:#1fa5d6;--text:#f7fbff;--muted:#d4e3ff;--line:rgba(255,255,255,.18);--glass1:rgba(255,255,255,.11);--glass2:rgba(255,255,255,.06);--btn1:#3270f1;--btn2:#16c2e5;}
+        *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:"Segoe UI",Tahoma,sans-serif;color:var(--text);background:radial-gradient(circle at bottom,#1da6d7 0,#2743a0 48%,#2a3e93 100%);overflow:hidden}
+        .page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:24px}
+        .orb{position:absolute;border-radius:999px;background:rgba(255,255,255,.32)} .o1{width:8px;height:8px;left:9%;top:22%}.o2{width:7px;height:7px;left:25%;bottom:29%}.o3{width:7px;height:7px;right:13%;top:44%;background:#74dff5}
+        .brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:800;margin-bottom:46px;z-index:1}.brand i{font-size:24px;color:#78e7ff}
+        .card{width:min(440px,100%);padding:38px 28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--glass1),var(--glass2));backdrop-filter:blur(8px);box-shadow:0 34px 60px rgba(5,14,48,.32);z-index:1}
+        h1{margin:0 0 10px;text-align:center;font-size:26px;font-weight:800}.sub{margin:0 0 26px;text-align:center;color:var(--muted);font-size:14px}.code-label{text-align:left;margin:0 0 14px;font-size:14px;font-weight:700}
+        .code-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:18px}
+        .code-grid input{width:100%;min-width:0;height:56px;border-radius:14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);color:#fff;font-size:24px;font-weight:800;text-align:center;outline:none}
+        .code-grid input:focus{border-color:rgba(135,226,255,.9);box-shadow:0 0 0 3px rgba(80,208,255,.18)}
+        .btn{width:100%;height:54px;border:0;border-radius:16px;background:linear-gradient(90deg,var(--btn1),var(--btn2));color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 14px 28px rgba(7,17,56,.26)}
+        .meta{margin:6px 0 20px;text-align:center;color:var(--muted);font-size:14px}.meta button{border:0;background:none;color:#34d7f6;font:inherit;cursor:pointer;padding:0}
+        .back{display:flex;justify-content:center;margin-top:22px}.back a{color:#68e8ff;text-decoration:none;font-size:14px}
+        .summary,.field-error,.msg{font-size:12px;text-align:center}.summary,.field-error{color:#ffd7de}.msg{margin-bottom:12px;color:#dfffea}.dev{margin-bottom:12px;text-align:center;font-size:12px;color:#fff3a6}
+        .hidden-code{position:absolute;opacity:0;pointer-events:none}
+        @@media (max-width:560px){
+            .page{padding:18px}
+            .brand{margin-bottom:26px;font-size:18px}
+            .card{padding:28px 18px;border-radius:18px}
+            h1{font-size:22px}
+            .sub{font-size:13px}
+            .code-grid{gap:8px}
+            .code-grid input{height:50px;font-size:22px;border-radius:12px}
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span>
+        <div class="brand"><i class="bi bi-stars"></i>Eventify</div>
+        <div class="card">
+            <h1>@heading</h1>
+            <p class="sub">@subtitle</p>
+            @if (TempData["AuthMessage"] is string authMessage) { <div class="msg">@authMessage</div> }
+            @if (!string.IsNullOrWhiteSpace(authDevCode)) { <div class="dev" id="devCodeText" data-code="@authDevDigits">@authDevCode</div> }
+            <div class="summary" asp-validation-summary="ModelOnly"></div>
+            <form asp-action="VerifyEmail" method="post" id="verifyForm">
+                @Html.AntiForgeryToken()
+                <input asp-for="Email" type="hidden" />
+                <input asp-for="Purpose" type="hidden" />
+                <input asp-for="Code" type="hidden" id="fullCodeInput" class="hidden-code" value="@(!string.IsNullOrWhiteSpace(Model.Code) ? Model.Code : authDevDigits)" />
+                <div class="code-label">Enter 6-digit code</div>
+                <div class="code-grid">
+                    @for (var i = 0; i < 6; i++)
+                    {
+                        var code = Model.Code ?? string.Empty;
+                        var digitValue = i < code.Length ? code[i].ToString() : (i < authDevDigits.Length ? authDevDigits[i].ToString() : string.Empty);
+                        <input type="text" inputmode="numeric" maxlength="1" class="digit-input" aria-label="Digit @(i + 1)" value="@digitValue" />
+                    }
+                </div>
+                <span asp-validation-for="Code" class="field-error"></span>
+                <div class="meta">Resend code in <span id="countdown">@Model.CountdownSeconds</span>s</div>
+                <button class="btn" type="submit">Verify Code</button>
+            </form>
+            <form asp-action="ResendCode" method="post" id="resendForm" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="email" value="@Model.Email" />
+                <input type="hidden" name="purpose" value="@Model.Purpose" />
+            </form>
+            <div class="back"><a href="/Auth/Login"><i class="bi bi-arrow-left"></i> Back to Sign In</a></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const digits = Array.from(document.querySelectorAll(".digit-input"));
+            const fullCode = document.getElementById("fullCodeInput");
+            const countdown = document.getElementById("countdown");
+            const resendForm = document.getElementById("resendForm");
+            const verifyForm = document.getElementById("verifyForm");
+            const devCodeText = document.getElementById("devCodeText");
+            const updateCode = function () { fullCode.value = digits.map(function (x) { return x.value; }).join(""); };
+            const fillCode = function (value) {
+                const text = (value || "").replace(/\D/g, "").slice(0, 6);
+                if (!text) return;
+                digits.forEach(function (x, i) { x.value = text[i] || ""; });
+                updateCode();
+                const nextEmpty = digits.find(function (x) { return !x.value; });
+                (nextEmpty || digits[digits.length - 1]).focus();
+            };
+            digits.forEach(function (input, index) {
+                input.addEventListener("input", function () {
+                    input.value = input.value.replace(/\D/g, "").slice(0, 1);
+                    updateCode();
+                    if (input.value && index < digits.length - 1) digits[index + 1].focus();
+                });
+                input.addEventListener("keydown", function (e) {
+                    if (e.key === "Backspace" && !input.value && index > 0) digits[index - 1].focus();
+                });
+                input.addEventListener("paste", function (e) {
+                    e.preventDefault();
+                    fillCode(e.clipboardData.getData("text") || "");
+                });
+            });
+            if (fullCode && fullCode.value) {
+                fillCode(fullCode.value);
+            }
+            if (devCodeText && devCodeText.dataset.code) {
+                fillCode(devCodeText.dataset.code);
+            }
+            if (verifyForm) {
+                verifyForm.addEventListener("submit", function () {
+                    updateCode();
+                });
+            }
+            let seconds = parseInt(countdown.textContent || "60", 10);
+            const timer = setInterval(function () {
+                seconds -= 1;
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    countdown.parentElement.innerHTML = 'Didn\\'t receive it? <button type="button" id="resendBtn">Resend code</button>';
+                    document.getElementById("resendBtn").addEventListener("click", function () { resendForm.submit(); });
+                    return;
+                }
+                countdown.textContent = String(seconds);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

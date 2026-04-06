@@ -6,6 +6,17 @@
     var searchDate = ViewBag.SearchDate as string ?? string.Empty;
     var selectedCategory = ViewBag.SelectedCategory as string ?? string.Empty;
     var hasSearch = ViewBag.HasSearch is bool searchRequested && searchRequested;
+    var heroSlides = events
+        .Select(e => new { e.ImageUrl, e.Title })
+        .Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl))
+        .DistinctBy(x => x.ImageUrl)
+        .Take(4)
+        .ToList();
+
+    if (heroSlides.Count == 0)
+    {
+        heroSlides.Add(new { ImageUrl = Url.Content("~/images/img.png"), Title = "Featured Event" });
+    }
 }
 
 <nav class="ev-nav">
@@ -79,10 +90,30 @@
             </div>
         </div>
 
-        <div class="ev-hero-right">
-            <img src="@Url.Content("~/images/img.png")"
-                 alt="Hero Event"
-                 onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='@Url.Content("~/img.png")';}" />
+        <div class="ev-hero-right ev-hero-slider" data-slider>
+            <div class="ev-hero-slides">
+                @for (var i = 0; i < heroSlides.Count; i++)
+                {
+                    var slide = heroSlides[i];
+                    <img class="ev-hero-slide @(i == 0 ? "is-active" : "")"
+                         src="@slide.ImageUrl"
+                         alt="@slide.Title"
+                         data-slide-index="@i"
+                         onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='@Url.Content("~/images/img.png")';}" />
+                }
+            </div>
+            @if (heroSlides.Count > 1)
+            {
+                <div class="ev-hero-dots">
+                    @for (var i = 0; i < heroSlides.Count; i++)
+                    {
+                        <button type="button"
+                                class="ev-hero-dot @(i == 0 ? "is-active" : "")"
+                                aria-label="Show slide @(i + 1)"
+                                data-dot-index="@i"></button>
+                    }
+                </div>
+            }
         </div>
 
     </div>
@@ -90,10 +121,10 @@
 
 <section class="ev-stats-section">
     <div class="container ev-grid ev-grid-4">
-        <article class="ev-stat-card"><div class="ev-stat-icon blue"><i class="bi bi-calendar-week"></i></div><h3>10K+</h3><p>Events</p></article>
-        <article class="ev-stat-card"><div class="ev-stat-icon violet"><i class="bi bi-people-fill"></i></div><h3>50K+</h3><p>Attendees</p></article>
-        <article class="ev-stat-card"><div class="ev-stat-icon indigo"><i class="bi bi-file-earmark-text"></i></div><h3>2K+</h3><p>Organizers</p></article>
-        <article class="ev-stat-card"><div class="ev-stat-icon gold"><i class="bi bi-star-fill"></i></div><h3>4.9</h3><p>Rating</p></article>
+        <article class="ev-stat-card ev-reveal" style="--ev-delay:0s;"><div class="ev-stat-icon blue"><i class="bi bi-calendar-week"></i></div><h3 class="ev-counter" data-target="10000" data-suffix="+">0</h3><p>Events</p></article>
+        <article class="ev-stat-card ev-reveal" style="--ev-delay:.08s;"><div class="ev-stat-icon violet"><i class="bi bi-people-fill"></i></div><h3 class="ev-counter" data-target="50000" data-suffix="+">0</h3><p>Attendees</p></article>
+        <article class="ev-stat-card ev-reveal" style="--ev-delay:.16s;"><div class="ev-stat-icon indigo"><i class="bi bi-file-earmark-text"></i></div><h3 class="ev-counter" data-target="2000" data-suffix="+">0</h3><p>Organizers</p></article>
+        <article class="ev-stat-card ev-reveal" style="--ev-delay:.24s;"><div class="ev-stat-icon gold"><i class="bi bi-star-fill"></i></div><h3 class="ev-counter" data-target="4.9" data-decimals="1">0</h3><p>Rating</p></article>
     </div>
 </section>
 
@@ -105,12 +136,12 @@
         </header>
 
         <div class="ev-grid ev-grid-3">
-            <article class="ev-feature-card"><span class="ev-mini-icon blue"><i class="bi bi-lightning-charge-fill"></i></span><h4>Instant Booking</h4><p>Book your favorite events instantly with just a few clicks.</p></article>
-            <article class="ev-feature-card"><span class="ev-mini-icon green"><i class="bi bi-shield-lock-fill"></i></span><h4>Secure Payments</h4><p>Your payments are protected with bank-level security.</p></article>
-            <article class="ev-feature-card"><span class="ev-mini-icon purple"><i class="bi bi-ticket-perforated-fill"></i></span><h4>Digital Tickets</h4><p>Access your tickets anytime, anywhere on your mobile device.</p></article>
-            <article class="ev-feature-card"><span class="ev-mini-icon orange"><i class="bi bi-bell-fill"></i></span><h4>Event Reminders</h4><p>Never miss an event with smart notifications and reminders.</p></article>
-            <article class="ev-feature-card"><span class="ev-mini-icon pink"><i class="bi bi-heart-fill"></i></span><h4>Wishlist Events</h4><p>Save events you love and get notified when tickets are available.</p></article>
-            <article class="ev-feature-card"><span class="ev-mini-icon cyan"><i class="bi bi-graph-up-arrow"></i></span><h4>Trending Events</h4><p>Discover what's popular and trending in your area.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:0s;"><span class="ev-mini-icon blue"><i class="bi bi-lightning-charge-fill"></i></span><h4>Instant Booking</h4><p>Book your favorite events instantly with just a few clicks.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:.06s;"><span class="ev-mini-icon green"><i class="bi bi-shield-lock-fill"></i></span><h4>Secure Payments</h4><p>Your payments are protected with bank-level security.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:.12s;"><span class="ev-mini-icon purple"><i class="bi bi-ticket-perforated-fill"></i></span><h4>Digital Tickets</h4><p>Access your tickets anytime, anywhere on your mobile device.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:.18s;"><span class="ev-mini-icon orange"><i class="bi bi-bell-fill"></i></span><h4>Event Reminders</h4><p>Never miss an event with smart notifications and reminders.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:.24s;"><span class="ev-mini-icon pink"><i class="bi bi-heart-fill"></i></span><h4>Wishlist Events</h4><p>Save events you love and get notified when tickets are available.</p></article>
+            <article class="ev-feature-card ev-reveal" style="--ev-delay:.30s;"><span class="ev-mini-icon cyan"><i class="bi bi-graph-up-arrow"></i></span><h4>Trending Events</h4><p>Discover what's popular and trending in your area.</p></article>
         </div>
     </div>
 </section>
@@ -125,7 +156,7 @@
         <div class="ev-grid ev-grid-3">
             @if (events.Count == 0)
             {
-                <article class="ev-event-card">
+                <article class="ev-event-card ev-reveal">
                     <div class="ev-event-body">
                         <h4>No events found</h4>
                         <p>Try changing location, date, or category filters.</p>
@@ -136,7 +167,7 @@
             {
                 @foreach (var item in events)
                 {
-                    <article class="ev-event-card">
+                    <article class="ev-event-card ev-reveal" style="--ev-delay:@($"{Math.Min(0.36, events.IndexOf(item) * 0.06):0.00}s")">
                         <img src="@item.ImageUrl" alt="@item.Title" />
                         <div class="ev-event-body">
                             <h4>@item.Title</h4>
@@ -167,15 +198,15 @@
         </header>
 
         <div class="ev-grid ev-grid-3">
-            <article class="ev-category-card"><span class="ev-mini-icon blue"><i class="bi bi-music-note-beamed"></i></span><h4>Music</h4><p>1,234 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon orange"><i class="bi bi-trophy-fill"></i></span><h4>Sports</h4><p>856 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon purple"><i class="bi bi-palette-fill"></i></span><h4>Arts</h4><p>642 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon red"><i class="bi bi-cup-straw"></i></span><h4>Food &amp; Drink</h4><p>423 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon indigo"><i class="bi bi-briefcase-fill"></i></span><h4>Business</h4><p>789 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon gold"><i class="bi bi-emoji-laughing-fill"></i></span><h4>Comedy</h4><p>312 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon pink"><i class="bi bi-cup-hot-fill"></i></span><h4>Nightlife</h4><p>567 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon green"><i class="bi bi-activity"></i></span><h4>Fitness</h4><p>445 events</p></article>
-            <article class="ev-category-card"><span class="ev-mini-icon cyan"><i class="bi bi-mortarboard-fill"></i></span><h4>Education</h4><p>678 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:0s;"><span class="ev-mini-icon blue"><i class="bi bi-music-note-beamed"></i></span><h4>Music</h4><p>1,234 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.05s;"><span class="ev-mini-icon orange"><i class="bi bi-trophy-fill"></i></span><h4>Sports</h4><p>856 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.10s;"><span class="ev-mini-icon purple"><i class="bi bi-palette-fill"></i></span><h4>Arts</h4><p>642 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.15s;"><span class="ev-mini-icon red"><i class="bi bi-cup-straw"></i></span><h4>Food &amp; Drink</h4><p>423 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.20s;"><span class="ev-mini-icon indigo"><i class="bi bi-briefcase-fill"></i></span><h4>Business</h4><p>789 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.25s;"><span class="ev-mini-icon gold"><i class="bi bi-emoji-laughing-fill"></i></span><h4>Comedy</h4><p>312 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.30s;"><span class="ev-mini-icon pink"><i class="bi bi-cup-hot-fill"></i></span><h4>Nightlife</h4><p>567 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.35s;"><span class="ev-mini-icon green"><i class="bi bi-activity"></i></span><h4>Fitness</h4><p>445 events</p></article>
+            <article class="ev-category-card ev-reveal" style="--ev-delay:.40s;"><span class="ev-mini-icon cyan"><i class="bi bi-mortarboard-fill"></i></span><h4>Education</h4><p>678 events</p></article>
         </div>
     </div>
 </section>
@@ -229,3 +260,107 @@
         </div>
     </div>
 </footer>
+
+<script>
+(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealItems = document.querySelectorAll(".ev-reveal");
+    const counters = document.querySelectorAll(".ev-counter");
+
+    if (revealItems.length) {
+        if (reducedMotion || !("IntersectionObserver" in window)) {
+            revealItems.forEach((item) => item.classList.add("is-visible"));
+        } else {
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: 0.18, rootMargin: "0px 0px -40px 0px" });
+
+            revealItems.forEach((item) => revealObserver.observe(item));
+        }
+    }
+
+    const formatCounter = (value, decimals, suffix) => {
+        if (value >= 1000 && decimals === 0) {
+            return `${Math.round(value / 1000)}K${suffix}`;
+        }
+        return `${value.toFixed(decimals)}${suffix}`;
+    };
+
+    const runCounter = (counter) => {
+        const target = Number(counter.dataset.target || "0");
+        const decimals = Number(counter.dataset.decimals || "0");
+        const suffix = counter.dataset.suffix || "";
+        const duration = 1400;
+        const start = performance.now();
+
+        const tick = (now) => {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = target * eased;
+            counter.textContent = formatCounter(current, decimals, suffix);
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            } else {
+                counter.textContent = formatCounter(target, decimals, suffix);
+            }
+        };
+
+        requestAnimationFrame(tick);
+    };
+
+    if (counters.length) {
+        if (reducedMotion || !("IntersectionObserver" in window)) {
+            counters.forEach(runCounter);
+        } else {
+            const counterObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    runCounter(entry.target);
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: 0.35 });
+
+            counters.forEach((counter) => counterObserver.observe(counter));
+        }
+    }
+
+    const sliders = document.querySelectorAll("[data-slider]");
+    sliders.forEach((slider) => {
+        const slides = Array.from(slider.querySelectorAll(".ev-hero-slide"));
+        const dots = Array.from(slider.querySelectorAll(".ev-hero-dot"));
+        if (slides.length <= 1) return;
+
+        let activeIndex = 0;
+        let timerId = null;
+
+        const showSlide = (index) => {
+            activeIndex = (index + slides.length) % slides.length;
+            slides.forEach((slide, i) => slide.classList.toggle("is-active", i === activeIndex));
+            dots.forEach((dot, i) => dot.classList.toggle("is-active", i === activeIndex));
+        };
+
+        const startAutoPlay = () => {
+            if (reducedMotion) return;
+            clearInterval(timerId);
+            timerId = setInterval(() => showSlide(activeIndex + 1), 3200);
+        };
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener("click", () => {
+                showSlide(index);
+                startAutoPlay();
+            });
+        });
+
+        slider.addEventListener("mouseenter", () => clearInterval(timerId));
+        slider.addEventListener("mouseleave", startAutoPlay);
+
+        showSlide(0);
+        startAutoPlay();
+    });
+})();
+</script>

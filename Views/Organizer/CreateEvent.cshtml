@@ -52,19 +52,6 @@
     object-fit: cover;
     display: none;
 }
-.gallery-preview-grid {
-    margin-top: 8px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 8px;
-}
-.gallery-thumb {
-    width: 100%;
-    height: 86px;
-    border: 1px solid #d5dee9;
-    border-radius: 8px;
-    object-fit: cover;
-}
 .media-label { font-size: 11px; color: #334155; font-weight: 600; margin: 2px 0 6px; }
 .upload-box { cursor: pointer; user-select: none; }
 .upload-box:focus { outline: 2px solid #60a5fa; outline-offset: 2px; }
@@ -212,14 +199,6 @@
             <div class="media-preview">
                 <img id="bannerPreview" class="banner-preview" src="@Model.ImageUrl" alt="Banner preview" />
             </div>
-            <div class="media-label">Gallery Images Upload</div>
-            <input id="galleryInput" name="galleryFiles" type="file" accept=".png,.jpg,.jpeg,.webp" multiple hidden />
-            <div id="galleryUploadBox" class="upload-box" role="button" tabindex="0" title="Click to upload gallery images">
-                <i class="bi bi-images"></i>
-                <div id="galleryUploadText">Upload multiple images</div>
-                <small id="galleryUploadHint">Up to 10 images (max. 2MB each)</small>
-            </div>
-            <div id="galleryPreviewGrid" class="gallery-preview-grid"></div>
         </section>
 
         <section class="panel">
@@ -272,11 +251,6 @@
     const bannerUploadText = document.getElementById('bannerUploadText');
     const bannerUploadHint = document.getElementById('bannerUploadHint');
     const bannerPreview = document.getElementById('bannerPreview');
-    const galleryInput = document.getElementById('galleryInput');
-    const galleryUploadBox = document.getElementById('galleryUploadBox');
-    const galleryUploadText = document.getElementById('galleryUploadText');
-    const galleryUploadHint = document.getElementById('galleryUploadHint');
-    const galleryPreviewGrid = document.getElementById('galleryPreviewGrid');
 
     if (!venueInput || !mapPreview || !mapEmptyState || !mapFrame || !openInMapsLink) return;
 
@@ -334,7 +308,6 @@
     };
 
     addKeyboardOpen(bannerUploadBox, bannerInput);
-    addKeyboardOpen(galleryUploadBox, galleryInput);
 
     if (bannerInput && bannerUploadText && bannerUploadHint) {
         if (bannerPreview && bannerPreview.getAttribute('src')) {
@@ -357,30 +330,6 @@
                 bannerPreview.src = URL.createObjectURL(file);
                 bannerPreview.style.display = 'block';
             }
-        });
-    }
-
-    if (galleryInput && galleryUploadText && galleryUploadHint && galleryPreviewGrid) {
-        galleryInput.addEventListener('change', () => {
-            const count = galleryInput.files ? galleryInput.files.length : 0;
-            if (count === 0) {
-                galleryUploadText.textContent = 'Upload multiple images';
-                galleryUploadHint.textContent = 'Up to 10 images (max. 2MB each)';
-                galleryPreviewGrid.innerHTML = '';
-                return;
-            }
-
-            galleryUploadText.textContent = `${count} image(s) selected`;
-            galleryUploadHint.textContent = 'Click again to change selection';
-            galleryPreviewGrid.innerHTML = '';
-
-            Array.from(galleryInput.files).slice(0, 10).forEach((file) => {
-                const img = document.createElement('img');
-                img.className = 'gallery-thumb';
-                img.alt = file.name;
-                img.src = URL.createObjectURL(file);
-                galleryPreviewGrid.appendChild(img);
-            });
         });
     }
 })();

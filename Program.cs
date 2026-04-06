@@ -13,7 +13,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddDbContext<EventifyDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -40,306 +40,85 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EventifyDbContext>();
-    db.Database.EnsureCreated();
+    await db.Database.MigrateAsync();
     db.Database.ExecuteSqlRaw(
         """
-        CREATE TABLE IF NOT EXISTS Users (
-            Id INTEGER NOT NULL CONSTRAINT PK_Users PRIMARY KEY AUTOINCREMENT,
-            FullName TEXT NOT NULL,
-            Email TEXT NOT NULL,
-            PasswordHash TEXT NOT NULL,
-            PasswordText TEXT NOT NULL DEFAULT '',
-            Role TEXT NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    try
-    {
-        db.Database.ExecuteSqlRaw(
-            """
-            ALTER TABLE Users ADD COLUMN PasswordText TEXT NOT NULL DEFAULT '';
-            """);
-    }
-    catch
-    {
-    }
-    db.Database.ExecuteSqlRaw(
-        """
-        UPDATE Users
-        SET PasswordText = CASE
-            WHEN lower(Email) = 'attend@eventify.com' THEN 'Attend@2026!Go'
-            WHEN lower(Email) = 'organizer@eventify.com' THEN 'Organizer@2026!Go'
-            WHEN lower(Email) = 'admin@eventify.com' THEN 'Admin@2026!Go'
-            ELSE PasswordText
-        END
-        WHERE IFNULL(PasswordText, '') = ''
-          AND lower(Email) IN ('attend@eventify.com', 'organizer@eventify.com', 'admin@eventify.com');
+        IF OBJECT_ID(N'[dbo].[OrganizerCoupons]', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[OrganizerCoupons] (
+                [Id] int NOT NULL IDENTITY,
+                [Code] nvarchar(450) NOT NULL,
+                [DiscountPercent] decimal(18,2) NOT NULL,
+                [ExpiryDate] datetime2 NOT NULL,
+                [UsageLimit] int NOT NULL,
+                [UsageCount] int NOT NULL,
+                [IsActive] bit NOT NULL,
+                [CreatedAtUtc] datetime2 NOT NULL,
+                CONSTRAINT [PK_OrganizerCoupons] PRIMARY KEY ([Id])
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_OrganizerCoupons_Code'
+              AND object_id = OBJECT_ID(N'[dbo].[OrganizerCoupons]')
+        )
+        BEGIN
+            CREATE UNIQUE INDEX [IX_OrganizerCoupons_Code] ON [dbo].[OrganizerCoupons] ([Code]);
+        END;
         """);
     db.Database.ExecuteSqlRaw(
         """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_Users_Email ON Users (Email);
+        IF COL_LENGTH('dbo.Users', 'IsEmailVerified') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users] ADD [IsEmailVerified] bit NOT NULL CONSTRAINT [DF_Users_IsEmailVerified] DEFAULT(0);
+        END;
+
+        IF COL_LENGTH('dbo.Users', 'EmailVerifiedAtUtc') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users] ADD [EmailVerifiedAtUtc] datetime2 NULL;
+        END;
+
+        IF COL_LENGTH('dbo.Users', 'PasswordChangedAtUtc') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[Users] ADD [PasswordChangedAtUtc] datetime2 NULL;
+        END;
+
+        UPDATE [dbo].[Users]
+        SET [IsEmailVerified] = 1,
+            [EmailVerifiedAtUtc] = ISNULL([EmailVerifiedAtUtc], SYSUTCDATETIME())
+        WHERE [IsEmailVerified] = 0;
+
+        UPDATE [dbo].[Users]
+        SET [PasswordChangedAtUtc] = ISNULL([PasswordChangedAtUtc], [CreatedAtUtc])
+        WHERE [PasswordChangedAtUtc] IS NULL;
+
+        IF OBJECT_ID(N'[dbo].[AuthCodes]', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[AuthCodes] (
+                [Id] int NOT NULL IDENTITY,
+                [Email] nvarchar(450) NOT NULL,
+                [Purpose] nvarchar(450) NOT NULL,
+                [Code] nvarchar(450) NOT NULL,
+                [ExpiresAtUtc] datetime2 NOT NULL,
+                [IsUsed] bit NOT NULL,
+                [CreatedAtUtc] datetime2 NOT NULL,
+                [UsedAtUtc] datetime2 NULL,
+                CONSTRAINT [PK_AuthCodes] PRIMARY KEY ([Id])
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_AuthCodes_Email_Purpose_Code'
+              AND object_id = OBJECT_ID(N'[dbo].[AuthCodes]')
+        )
+        BEGIN
+            CREATE INDEX [IX_AuthCodes_Email_Purpose_Code] ON [dbo].[AuthCodes] ([Email], [Purpose], [Code]);
+        END;
         """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS Bookings (
-            Id INTEGER NOT NULL CONSTRAINT PK_Bookings PRIMARY KEY AUTOINCREMENT,
-            EventItemId INTEGER NOT NULL,
-            UserEmail TEXT NOT NULL,
-            Status TEXT NOT NULL,
-            IsSaved INTEGER NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE INDEX IF NOT EXISTS IX_Bookings_EventItemId ON Bookings (EventItemId);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS MyBookings (
-            Id INTEGER NOT NULL CONSTRAINT PK_MyBookings PRIMARY KEY AUTOINCREMENT,
-            BookingCode TEXT NOT NULL,
-            EventItemId INTEGER NOT NULL,
-            UserEmail TEXT NOT NULL,
-            TicketName TEXT NOT NULL,
-            Quantity INTEGER NOT NULL,
-            UnitPrice REAL NOT NULL,
-            TotalAmount REAL NOT NULL,
-            Status TEXT NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE INDEX IF NOT EXISTS IX_MyBookings_EventItemId ON MyBookings (EventItemId);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE INDEX IF NOT EXISTS IX_MyBookings_UserEmail ON MyBookings (UserEmail);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AttendNotifications (
-            Id INTEGER NOT NULL CONSTRAINT PK_AttendNotifications PRIMARY KEY AUTOINCREMENT,
-            UserEmail TEXT NOT NULL,
-            Title TEXT NOT NULL,
-            Message TEXT NOT NULL,
-            Kind TEXT NOT NULL,
-            IsRead INTEGER NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE INDEX IF NOT EXISTS IX_AttendNotifications_UserEmail ON AttendNotifications (UserEmail);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AttendReviews (
-            Id INTEGER NOT NULL CONSTRAINT PK_AttendReviews PRIMARY KEY AUTOINCREMENT,
-            EventItemId INTEGER NOT NULL,
-            UserEmail TEXT NOT NULL,
-            Rating INTEGER NOT NULL,
-            Comment TEXT NOT NULL,
-            ReviewedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE INDEX IF NOT EXISTS IX_AttendReviews_UserEmail ON AttendReviews (UserEmail);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AttendProfileSettings (
-            Id INTEGER NOT NULL CONSTRAINT PK_AttendProfileSettings PRIMARY KEY AUTOINCREMENT,
-            UserEmail TEXT NOT NULL,
-            ProfilePhotoPath TEXT NOT NULL,
-            PhoneNumber TEXT NOT NULL,
-            Location TEXT NOT NULL,
-            DateOfBirth TEXT NULL,
-            Bio TEXT NOT NULL,
-            EmailNotifications INTEGER NOT NULL,
-            PushNotifications INTEGER NOT NULL,
-            EventReminders INTEGER NOT NULL,
-            PromotionsOffers INTEGER NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_AttendProfileSettings_UserEmail ON AttendProfileSettings (UserEmail);
-        """);
-    try
-    {
-        db.Database.ExecuteSqlRaw(
-            """
-            ALTER TABLE AttendProfileSettings ADD COLUMN ProfilePhotoPath TEXT NOT NULL DEFAULT '';
-            """);
-    }
-    catch
-    {
-    }
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS OrganizerCoupons (
-            Id INTEGER NOT NULL CONSTRAINT PK_OrganizerCoupons PRIMARY KEY AUTOINCREMENT,
-            Code TEXT NOT NULL,
-            DiscountPercent REAL NOT NULL,
-            ExpiryDate TEXT NOT NULL,
-            UsageLimit INTEGER NOT NULL,
-            UsageCount INTEGER NOT NULL,
-            IsActive INTEGER NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_OrganizerCoupons_Code ON OrganizerCoupons (Code);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS OrganizerAnnouncements (
-            Id INTEGER NOT NULL CONSTRAINT PK_OrganizerAnnouncements PRIMARY KEY AUTOINCREMENT,
-            EventItemId INTEGER NULL,
-            Title TEXT NOT NULL,
-            Message TEXT NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS OrganizerEventConfigs (
-            Id INTEGER NOT NULL CONSTRAINT PK_OrganizerEventConfigs PRIMARY KEY AUTOINCREMENT,
-            EventItemId INTEGER NOT NULL,
-            AvailableQuantity INTEGER NOT NULL,
-            EarlyBirdDiscount INTEGER NOT NULL,
-            EarlyBirdPrice REAL NOT NULL,
-            RefundPolicy TEXT NOT NULL,
-            GalleryImagesJson TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_OrganizerEventConfigs_EventItemId ON OrganizerEventConfigs (EventItemId);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS OrganizerProfileSettings (
-            Id INTEGER NOT NULL CONSTRAINT PK_OrganizerProfileSettings PRIMARY KEY AUTOINCREMENT,
-            UserEmail TEXT NOT NULL,
-            ProfilePhotoPath TEXT NOT NULL,
-            PhoneNumber TEXT NOT NULL,
-            Location TEXT NOT NULL,
-            DateOfBirth TEXT NULL,
-            Bio TEXT NOT NULL,
-            EmailNotifications INTEGER NOT NULL,
-            PushNotifications INTEGER NOT NULL,
-            EventReminders INTEGER NOT NULL,
-            PromotionsOffers INTEGER NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_OrganizerProfileSettings_UserEmail ON OrganizerProfileSettings (UserEmail);
-        """);
-    try
-    {
-        db.Database.ExecuteSqlRaw(
-            """
-            ALTER TABLE OrganizerProfileSettings ADD COLUMN ProfilePhotoPath TEXT NOT NULL DEFAULT '';
-            """);
-    }
-    catch
-    {
-    }
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS OrganizerPaymentRecords (
-            Id INTEGER NOT NULL CONSTRAINT PK_OrganizerPaymentRecords PRIMARY KEY AUTOINCREMENT,
-            MyBookingId INTEGER NOT NULL,
-            TransactionId TEXT NOT NULL,
-            Method TEXT NOT NULL,
-            Status TEXT NOT NULL,
-            PaidAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_OrganizerPaymentRecords_TransactionId ON OrganizerPaymentRecords (TransactionId);
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminOrganizerApplications (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminOrganizerApplications PRIMARY KEY AUTOINCREMENT,
-            OrganizationName TEXT NOT NULL,
-            Email TEXT NOT NULL,
-            AppliedOnUtc TEXT NOT NULL,
-            BusinessLicenseSubmitted INTEGER NOT NULL,
-            TaxIdSubmitted INTEGER NOT NULL,
-            IdVerificationSubmitted INTEGER NOT NULL,
-            Status TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminModerationEvents (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminModerationEvents PRIMARY KEY AUTOINCREMENT,
-            EventItemId INTEGER NULL,
-            EventTitle TEXT NOT NULL,
-            OrganizerName TEXT NOT NULL,
-            EventDate TEXT NOT NULL,
-            Location TEXT NOT NULL,
-            Capacity INTEGER NOT NULL,
-            Price REAL NOT NULL,
-            Status TEXT NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminCategories (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminCategories PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL,
-            Description TEXT NOT NULL,
-            Icon TEXT NOT NULL,
-            EventCount INTEGER NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminCmsPages (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminCmsPages PRIMARY KEY AUTOINCREMENT,
-            Title TEXT NOT NULL,
-            Slug TEXT NOT NULL,
-            UpdatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminReviewRatings (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminReviewRatings PRIMARY KEY AUTOINCREMENT,
-            ReviewerName TEXT NOT NULL,
-            EventName TEXT NOT NULL,
-            Rating INTEGER NOT NULL,
-            Comment TEXT NOT NULL,
-            Status TEXT NOT NULL,
-            IsReported INTEGER NOT NULL,
-            CreatedAtUtc TEXT NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE TABLE IF NOT EXISTS AdminDashboardTrends (
-            Id INTEGER NOT NULL CONSTRAINT PK_AdminDashboardTrends PRIMARY KEY AUTOINCREMENT,
-            Metric TEXT NOT NULL,
-            PercentChange REAL NOT NULL
-        );
-        """);
-    db.Database.ExecuteSqlRaw(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS IX_AdminDashboardTrends_Metric ON AdminDashboardTrends (Metric);
-        """);
-    db.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS AdminReviewModerations;");
     DbInitializer.Seed(db);
 
     if (!db.Bookings.Any() && db.Events.Any())
@@ -680,17 +459,6 @@ using (var scope = app.Services.CreateScope())
             new Eventify.Models.AdminCategory { Name = "Music", Description = "Concerts and music festivals", Icon = "bi-music-note-beamed", EventCount = 32 },
             new Eventify.Models.AdminCategory { Name = "Sports", Description = "Sports events and championships", Icon = "bi-dribbble", EventCount = 28 },
             new Eventify.Models.AdminCategory { Name = "Arts", Description = "Art exhibitions and cultural events", Icon = "bi-palette-fill", EventCount = 19 }
-        );
-        db.SaveChanges();
-    }
-
-    if (!db.AdminCmsPages.Any())
-    {
-        db.AdminCmsPages.AddRange(
-            new Eventify.Models.AdminCmsPage { Title = "About Us", Slug = "/about", UpdatedAtUtc = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new Eventify.Models.AdminCmsPage { Title = "Privacy Policy", Slug = "/privacy", UpdatedAtUtc = new DateTime(2024, 1, 12, 0, 0, 0, DateTimeKind.Utc) },
-            new Eventify.Models.AdminCmsPage { Title = "Terms & Conditions", Slug = "/terms", UpdatedAtUtc = new DateTime(2024, 1, 10, 0, 0, 0, DateTimeKind.Utc) },
-            new Eventify.Models.AdminCmsPage { Title = "FAQ", Slug = "/faq", UpdatedAtUtc = new DateTime(2024, 1, 8, 0, 0, 0, DateTimeKind.Utc) }
         );
         db.SaveChanges();
     }

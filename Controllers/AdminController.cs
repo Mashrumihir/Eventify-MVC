@@ -22,10 +22,15 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
 
         await EnsureAdminRecordsConnectedAsync();
 
-        var users = await db.Users.ToListAsync();
+        var users = await db.Users
+            .AsNoTracking()
+            .ToListAsync();
+        var totalUsers = users.Count;
         var organizers = users.Count(u => string.Equals(u.Role, "organizer", StringComparison.OrdinalIgnoreCase));
         var eventsCount = await db.Events.CountAsync();
-        var revenue = (decimal)(await db.MyBookings.Where(b => b.Status == "Booked").SumAsync(b => (double?)b.TotalAmount) ?? 0d);
+        var revenue = await db.MyBookings
+            .Where(b => b.Status == "Booked")
+            .SumAsync(b => (decimal?)b.TotalAmount) ?? 0m;
 
         var nowUtc = DateTime.UtcNow;
         var currentStartUtc = nowUtc.AddDays(-30);
@@ -100,7 +105,7 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
 
         var model = new AdminDashboardViewModel
         {
-            TotalUsers = users.Count,
+            TotalUsers = totalUsers,
             TotalOrganizers = organizers,
             TotalEvents = eventsCount,
             Revenue = revenue,
@@ -532,19 +537,14 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
         return RedirectToAction(nameof(EventModeration));
     }
 
-    public async Task<IActionResult> SystemSettings(string tab = "categories")
+    public async Task<IActionResult> SystemSettings()
     {
         ViewData["Title"] = "System Settings";
         ViewData["AdminNav"] = "settings";
 
-        tab = tab.Trim().ToLowerInvariant();
-        if (tab != "categories" && tab != "cms") tab = "categories";
-
         var model = new AdminSystemSettingsViewModel
         {
-            ActiveTab = tab,
-            Categories = await db.AdminCategories.OrderByDescending(x => x.EventCount).ToListAsync(),
-            CmsPages = await db.AdminCmsPages.OrderByDescending(x => x.UpdatedAtUtc).ToListAsync()
+            Categories = await db.AdminCategories.OrderByDescending(x => x.EventCount).ToListAsync()
         };
 
         return View(model);

@@ -8,10 +8,10 @@ public class AdminDashboardViewModel
     public int TotalOrganizers { get; set; }
     public int TotalEvents { get; set; }
     public decimal Revenue { get; set; }
-    public decimal UsersTrendPercent { get; set; } = 12.5m;
-    public decimal OrganizersTrendPercent { get; set; } = 8.2m;
-    public decimal EventsTrendPercent { get; set; } = 15.3m;
-    public decimal RevenueTrendPercent { get; set; } = -3.1m;
+    public decimal UsersTrendPercent { get; set; }
+    public decimal OrganizersTrendPercent { get; set; }
+    public decimal EventsTrendPercent { get; set; }
+    public decimal RevenueTrendPercent { get; set; }
     public List<AdminPendingApprovalItemViewModel> PendingApprovals { get; set; } = new();
 }
 
@@ -92,9 +92,7 @@ public class AdminEventModerationCardViewModel
 
 public class AdminSystemSettingsViewModel
 {
-    public string ActiveTab { get; set; } = "categories";
     public List<AdminCategory> Categories { get; set; } = new();
-    public List<AdminCmsPage> CmsPages { get; set; } = new();
 }
 
 public class AdminNotificationsViewModel
