@@ -22,6 +22,7 @@
 <h1 class="ad-title">System Settings</h1>
 <p class="ad-sub">Configure platform settings.</p>
 
+<<<<<<< HEAD
 <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-grad" type="button"><i class="bi bi-plus-lg"></i> Add Category</button></div>
 <div class="grid">
     @foreach (var c in Model.Categories)
@@ -33,4 +34,8 @@
             <p>Events <span class="count" style="float:right">@c.EventCount</span></p>
         </article>
     }
+=======
+<div class="pill-group">
+    <a class="pill @(Model.ActiveTab=="categories"?"active":"")" href="@Url.Action("SystemSettings", new { tab = "categories" })"><i class="bi bi-tag-fill"></i> Categories</a>
+>>>>>>> 3946ce5d0e0b0ea73e2f43d17c220b970092c70b
 </div>
