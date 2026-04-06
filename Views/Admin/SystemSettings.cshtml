@@ -46,7 +46,6 @@
 
 <div class="pill-group">
     <a class="pill @(Model.ActiveTab=="categories"?"active":"")" href="@Url.Action("SystemSettings", new { tab = "categories" })"><i class="bi bi-tag-fill"></i> Categories</a>
-    <a class="pill @(Model.ActiveTab=="cms"?"active":"")" href="@Url.Action("SystemSettings", new { tab = "cms" })"><i class="bi bi-file-earmark-text-fill"></i> CMS Pages</a>
 </div>
 
 @if (Model.ActiveTab == "categories")
