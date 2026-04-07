@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eventify.Controllers;
 
-public class AdminController(EventifyDbContext db, IConfiguration config) : Controller
+public class AdminController(EventifyDbContext db, IConfiguration config, IWebHostEnvironment env) : Controller
 {
     public IActionResult Index()
     {
@@ -800,6 +800,8 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
             return;
         }
 
+        connectionString = NormalizeSqliteConnectionString(connectionString);
+
         await using var conn = new SqliteConnection(connectionString);
         await conn.OpenAsync();
 
@@ -857,6 +859,28 @@ public class AdminController(EventifyDbContext db, IConfiguration config) : Cont
         insertCmd.Parameters.AddWithValue("$role", user.Role);
         insertCmd.Parameters.AddWithValue("$createdAtUtc", user.CreatedAtUtc.ToString("O"));
         await insertCmd.ExecuteNonQueryAsync();
+    }
+
+    private string NormalizeSqliteConnectionString(string connectionString)
+    {
+        var builder = new SqliteConnectionStringBuilder(connectionString);
+        var dataSource = builder.DataSource;
+
+        if (string.IsNullOrWhiteSpace(dataSource) || System.IO.Path.IsPathRooted(dataSource))
+        {
+            return builder.ToString();
+        }
+
+        var absolutePath = System.IO.Path.GetFullPath(System.IO.Path.Combine(env.ContentRootPath, dataSource));
+        var directory = System.IO.Path.GetDirectoryName(absolutePath);
+
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
+        builder.DataSource = absolutePath;
+        return builder.ToString();
     }
 }
 
