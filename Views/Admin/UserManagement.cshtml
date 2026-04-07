@@ -7,9 +7,15 @@
 <style>
 .ad-title{margin:0;font-size:22px;color:#1f3e76}.ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
 .msg{margin:0 0 10px;font-size:12px;color:#0b7f4d;font-weight:600}
-.search{display:flex;justify-content:center;margin-bottom:10px}.search input{width:min(520px,95%);padding:8px 12px;border-radius:999px;border:1px solid #b8d2f5;font-size:12px;background:#fff}
-.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.role-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.toolbar{
+    display:grid;
+    grid-template-columns:auto minmax(260px,1fr) auto;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+}
+.search{display:flex;justify-content:center;margin:0;min-width:0}.search input{width:min(520px,100%);padding:8px 12px;border-radius:999px;border:1px solid #b8d2f5;font-size:12px;background:#fff}
+.role-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0;min-width:0}
 .role-filters a{
     text-decoration:none;
     padding:6px 10px;
@@ -139,7 +145,7 @@
     color:#dc2626;
     background:#fff5f5;
 }
-@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.2fr) minmax(150px,1fr) .85fr .85fr .6fr 140px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.4fr) minmax(150px,1.05fr) .9fr .9fr 140px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.search input{font-size:12px}}
+@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.2fr) minmax(150px,1fr) .85fr .85fr .6fr 140px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.4fr) minmax(150px,1.05fr) .9fr .9fr 140px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.toolbar{grid-template-columns:1fr}.search{justify-content:flex-start}.search input{font-size:12px}}
 @@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.15fr 1fr .85fr .85fr .7fr 120px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.2fr 1fr .9fr .9fr 120px}.initial{width:24px;height:24px;font-size:10px}}
 </style>
 }
@@ -161,13 +167,12 @@
         <a class="@(Model.ActiveRole=="organizer"?"active":"")" href="@Url.Action("UserManagement", new { role = "organizer", q = Model.Search })">Organizer Users (@Model.OrganizerCount)</a>
         <a class="@(Model.ActiveRole=="admin"?"active":"")" href="@Url.Action("UserManagement", new { role = "admin", q = Model.Search })">Admin Users (@Model.AdminCount)</a>
     </div>
+    <form class="search" method="get">
+        <input type="hidden" name="role" value="@Model.ActiveRole" />
+        <input type="text" name="q" value="@Model.Search" placeholder="Search users by name or email..." />
+    </form>
     <button id="openAddUserModal" class="new-user-btn" type="button"><i class="bi bi-plus-lg"></i> New User</button>
 </div>
-
-<form class="search" method="get">
-    <input type="hidden" name="role" value="@Model.ActiveRole" />
-    <input type="text" name="q" value="@Model.Search" placeholder="Search users by name or email..." />
-</form>
 
 @{
     var showBookings = !string.Equals(Model.ActiveRole, "admin", StringComparison.OrdinalIgnoreCase);

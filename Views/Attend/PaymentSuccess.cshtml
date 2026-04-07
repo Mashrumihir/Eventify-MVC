@@ -10,76 +10,206 @@
 
 @section PageStyles {
     <style>
-        .ps-wrap { padding: 26px; background: #dce3ed; min-height: calc(100vh - 58px); display: flex; align-items: flex-start; justify-content: center; }
-        .ps-card { width: 100%; max-width: 680px; background: #fff; border: 1px solid #d6deea; border-radius: 16px; padding: 18px; box-shadow: 0 12px 24px rgba(17, 24, 39, 0.08); }
-        .ps-icon { width: 52px; height: 52px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 30px; font-weight: 700; }
-        .ps-title { margin: 0; text-align: center; color: #0f2547; font-size: 48px; line-height: 1.05; font-weight: 800; }
-        .ps-sub { margin: 2px 0 0; text-align: center; color: #5f7595; font-size: 26px; }
-        .ps-booking { margin: 2px 0 14px; text-align: center; color: #2563eb; text-decoration: none; display: block; font-size: 22px; }
-        .ps-event { background: #eaf0f8; border-radius: 14px; padding: 12px; display: grid; grid-template-columns: 126px 1fr; gap: 12px; }
-        .ps-event img { width: 126px; height: 126px; object-fit: cover; border-radius: 12px; }
-        .ps-event h2 { margin: 0 0 5px; color: #0f2547; font-size: 52px; line-height: 1.03; font-weight: 800; }
-        .ps-meta { margin: 4px 0; color: #355177; font-size: 30px; line-height: 1.2; }
-        .ps-meta i { color: #2563eb; margin-right: 4px; }
-        .ps-total { margin-top: 12px; background: #f3f6fb; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; color: #183255; font-size: 42px; font-weight: 700; }
-        .ps-total strong { font-size: 58px; color: #2563eb; line-height: 1; }
-        .ps-actions { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-        .ps-btn-primary, .ps-btn-outline { height: 36px; padding: 0 15px; border-radius: 10px; font-size: 24px; font-weight: 700; border: 1px solid #2563eb; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .ps-wrap {
+            padding: 28px 18px;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(45, 212, 191, 0.14), transparent 24%),
+                #dce3ed;
+            min-height: calc(100vh - 58px);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .ps-card {
+            width: 100%;
+            max-width: 760px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid #d6deea;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 22px 48px rgba(17, 24, 39, 0.12);
+        }
+        .ps-head {
+            text-align: center;
+            padding-bottom: 18px;
+        }
+        .ps-icon {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #22c55e);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 32px;
+            font-weight: 700;
+            box-shadow: 0 14px 24px rgba(16, 185, 129, 0.25);
+        }
+        .ps-title { margin: 0; color: #0f2547; font-size: 34px; line-height: 1.08; font-weight: 800; }
+        .ps-sub { margin: 8px 0 0; color: #5f7595; font-size: 16px; }
+        .ps-booking {
+            margin: 12px auto 0;
+            color: #2563eb;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #eef5ff;
+            border: 1px solid #cfe1fb;
+        }
+        .ps-overview {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) 170px;
+            gap: 16px;
+            align-items: stretch;
+        }
+        .ps-event {
+            background: linear-gradient(135deg, #ebf3ff 0%, #f5f9ff 100%);
+            border: 1px solid #dbe7f6;
+            border-radius: 20px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 124px 1fr;
+            gap: 16px;
+        }
+        .ps-event img {
+            width: 124px;
+            height: 124px;
+            object-fit: cover;
+            border-radius: 18px;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.14);
+        }
+        .ps-event h2 { margin: 0 0 12px; color: #0f2547; font-size: 30px; line-height: 1.05; font-weight: 800; }
+        .ps-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 14px;
+        }
+        .ps-meta {
+            margin: 0;
+            color: #355177;
+            font-size: 14px;
+            line-height: 1.35;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ps-meta i {
+            width: 18px;
+            color: #2563eb;
+            text-align: center;
+            flex: 0 0 auto;
+        }
+        .ps-summary {
+            background: linear-gradient(180deg, #0f3d8f 0%, #2563eb 100%);
+            color: #fff;
+            border-radius: 20px;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 16px 28px rgba(37, 99, 235, 0.2);
+        }
+        .ps-summary-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            opacity: .8;
+        }
+        .ps-summary-amount {
+            margin: 10px 0 16px;
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .ps-summary-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            margin-top: 8px;
+            opacity: .95;
+        }
+        .ps-actions { margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .ps-btn-primary, .ps-btn-outline { height: 42px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 700; border: 1px solid #2563eb; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
         .ps-btn-primary { background: linear-gradient(90deg, #3b82f6, #06b6d4); color: #fff; border-color: transparent; }
         .ps-btn-outline { background: #fff; color: #2563eb; }
-        .ps-share-status { margin-top: 8px; min-height: 22px; text-align: center; font-size: 16px; color: #2563eb; font-weight: 600; }
-        .ps-links { margin-top: 10px; text-align: center; font-size: 22px; color: #5f7595; }
+        .ps-share-status { margin-top: 8px; min-height: 22px; text-align: center; font-size: 13px; color: #2563eb; font-weight: 600; }
+        .ps-links { margin-top: 16px; text-align: center; font-size: 14px; color: #5f7595; }
         .ps-links a { color: #2563eb; text-decoration: none; margin: 0 8px; white-space: nowrap; }
-        .ps-note { margin-top: 12px; border: 1px solid #d4dfef; background: #eef3fa; color: #49658a; border-radius: 10px; padding: 8px 10px; font-size: 19px; }
         @@media (max-width: 1000px) {
             .ps-wrap { padding: 12px; }
             .ps-title { font-size: 30px; }
+            .ps-overview { grid-template-columns: 1fr; }
             .ps-sub, .ps-booking { font-size: 16px; }
             .ps-event { grid-template-columns: 90px 1fr; }
             .ps-event img { width: 90px; height: 90px; }
             .ps-event h2 { font-size: 34px; }
             .ps-meta { font-size: 17px; }
-            .ps-total { font-size: 24px; }
-            .ps-total strong { font-size: 36px; }
             .ps-btn-primary, .ps-btn-outline { font-size: 16px; }
             .ps-links { font-size: 14px; }
-            .ps-note { font-size: 13px; }
         }
         @@media (max-width: 700px) {
+            .ps-card { padding: 18px; border-radius: 18px; }
+            .ps-title { font-size: 28px; }
             .ps-event { grid-template-columns: 1fr; }
             .ps-event img { width: 100%; height: 180px; }
+            .ps-meta-grid { grid-template-columns: 1fr; }
+            .ps-summary-amount { font-size: 30px; }
+            .ps-links a { display: inline-block; margin: 4px 6px; }
         }
     </style>
 }
 
 <section class="ps-wrap">
     <article class="ps-card">
-        <div class="ps-icon"><i class="bi bi-check-lg"></i></div>
-        <h1 class="ps-title">Payment Successful!</h1>
-        <p class="ps-sub">Your booking has been confirmed</p>
-        <a class="ps-booking" href="#">Booking ID: @Model.BookingId</a>
-
-        <div class="ps-event">
-            <img src="@imageUrl" alt="@Model.Event.Title" />
-            <div>
-                <h2>@Model.Event.Title</h2>
-                <p class="ps-meta"><i class="bi bi-calendar3"></i>@Model.Event.StartDateTime.ToString("MMMM d, yyyy")</p>
-                <p class="ps-meta"><i class="bi bi-clock"></i>@Model.Event.StartDateTime.ToString("h:mm tt") - @endTime.ToString("h:mm tt")</p>
-                <p class="ps-meta"><i class="bi bi-geo-alt"></i>@Model.Event.Location</p>
-                <p class="ps-meta"><i class="bi bi-ticket-perforated"></i>@Model.TicketName</p>
-                <p class="ps-meta"><i class="bi bi-people"></i>Quantity: @Model.Quantity</p>
-                <p class="ps-meta"><i class="bi bi-credit-card"></i>@Model.PaymentMethod</p>
-            </div>
+        <div class="ps-head">
+            <div class="ps-icon"><i class="bi bi-check-lg"></i></div>
+            <h1 class="ps-title">Payment Successful!</h1>
+            <p class="ps-sub">Your booking has been confirmed and your invoice is ready.</p>
+            <span class="ps-booking"><i class="bi bi-receipt"></i>Booking ID: @Model.BookingId</span>
         </div>
 
-        <div class="ps-total">
-            <span>Total Paid</span>
-            <strong>&#8377;@Model.TotalPaid.ToString("0.00")</strong>
+        <div class="ps-overview">
+            <div class="ps-event">
+                <img src="@imageUrl" alt="@Model.Event.Title" />
+                <div>
+                    <h2>@Model.Event.Title</h2>
+                    <div class="ps-meta-grid">
+                        <p class="ps-meta"><i class="bi bi-calendar3"></i><span>@Model.Event.StartDateTime.ToString("MMMM d, yyyy")</span></p>
+                        <p class="ps-meta"><i class="bi bi-clock"></i><span>@Model.Event.StartDateTime.ToString("h:mm tt") - @endTime.ToString("h:mm tt")</span></p>
+                        <p class="ps-meta"><i class="bi bi-geo-alt"></i><span>@Model.Event.Location</span></p>
+                        <p class="ps-meta"><i class="bi bi-ticket-perforated"></i><span>@Model.TicketName</span></p>
+                        <p class="ps-meta"><i class="bi bi-people"></i><span>Quantity: @Model.Quantity</span></p>
+                        <p class="ps-meta"><i class="bi bi-credit-card"></i><span>@Model.PaymentMethod</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="ps-summary">
+                <div>
+                    <div class="ps-summary-label">Total Paid</div>
+                    <div class="ps-summary-amount">&#8377;@Model.TotalPaid.ToString("0.00")</div>
+                </div>
+                <div>
+                    <div class="ps-summary-line"><span>Ticket</span><span>@Model.TicketName</span></div>
+                    <div class="ps-summary-line"><span>Qty</span><span>@Model.Quantity</span></div>
+                    <div class="ps-summary-line"><span>Method</span><span>@Model.PaymentMethod</span></div>
+                </div>
+            </aside>
         </div>
 
         <div class="ps-actions">
-            <a class="ps-btn-primary" href="@Url.Action("DownloadTicket", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId })">
-                <i class="bi bi-download"></i>Download Ticket
+            <a class="ps-btn-primary" href="@Url.Action("DownloadInvoicePdf", "Attend", new { id = Model.Event.Id, ticket = Model.TicketName, total = Model.TotalPaid, qty = Model.Quantity, bookingId = Model.BookingId })">
+                <i class="bi bi-download"></i>Download PDF
             </a>
             <button type="button"
                     id="shareTicketBtn"
@@ -100,10 +230,6 @@
             <a href="/Attend/Payments">View Payments</a> |
             <a href="/Attend/BrowseEvents">Browse More Events</a> |
             <a href="/Attend/Dashboard">Go to Dashboard</a>
-        </div>
-
-        <div class="ps-note">
-            <i class="bi bi-envelope"></i> A confirmation email with your ticket has been sent to your registered email address.
         </div>
     </article>
 </section>

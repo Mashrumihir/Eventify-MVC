@@ -6,58 +6,90 @@
 
 @section PageStyles {
     <style>
-        .mb-wrap { padding: 16px 14px; background: #cfd7e2; min-height: calc(100vh - 58px); }
-        .mb-title { margin: 0; font-size: 20px; font-weight: 800; color: #152846; }
-        .mb-sub { margin: 1px 0 10px; color: #5f7493; font-size: 12px; }
+        .mb-wrap { padding: 20px 16px; background: #cfd7e2; min-height: calc(100vh - 58px); width: 100%; }
+        .mb-title { margin: 0; font-size: 22px; font-weight: 800; color: #152846; }
+        .mb-sub { margin: 3px 0 14px; color: #5f7493; font-size: 14px; }
 
-        .mb-tabs { display: flex; gap: 16px; border-bottom: 1px solid #d9e1ec; margin-bottom: 10px; }
-        .mb-tab { padding: 8px 0; color: #5c708f; text-decoration: none; font-size: 10px; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .mb-tabs { display: flex; gap: 18px; border-bottom: 1px solid #d9e1ec; margin-bottom: 12px; }
+        .mb-tab { padding: 10px 0; color: #5c708f; text-decoration: none; font-size: 12px; font-weight: 700; border-bottom: 2px solid transparent; margin-bottom: -1px; }
         .mb-tab.active { color: #2563eb; border-color: #2563eb; }
 
-        .mb-list { display: grid; gap: 8px; }
+        .mb-list { display: grid; gap: 14px; width: 100%; }
         .mb-card {
-            background: #fff;
+            background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
             border: 1px solid #dbe3ef;
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 18px;
+            padding: 18px;
             display: grid;
-            grid-template-columns: 64px 1fr 170px 110px;
-            gap: 10px;
-            align-items: center;
+            grid-template-columns: 88px minmax(320px, 1.3fr) minmax(180px, .7fr) 132px;
+            gap: 16px;
+            align-items: start;
+            width: 100%;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
         }
 
-        .mb-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #d5deea; }
-        .mb-main h3 { margin: 0; color: #17263f; font-size: 11px; font-weight: 800; line-height: 1.2; }
-        .mb-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; padding: 2px 7px; border-radius: 999px; font-size: 8px; font-weight: 700; }
+        .mb-thumb {
+            width: 88px;
+            height: 88px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 1px solid #d5deea;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+        .mb-main {
+            min-width: 0;
+            padding: 6px 4px;
+        }
+        .mb-main h3 { margin: 0; color: #17263f; font-size: 24px; font-weight: 800; line-height: 1.1; }
+        .mb-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
         .mb-badge.confirmed { background: #dcfce7; color: #166534; }
         .mb-badge.canceled { background: #fee2e2; color: #b91c1c; }
-        .mb-row { margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; color: #536a89; font-size: 8px; }
-        .mb-row i { color: #2563eb; margin-right: 4px; }
+        .mb-row { margin-top: 10px; display: flex; gap: 18px; flex-wrap: wrap; color: #536a89; font-size: 13px; }
+        .mb-row i { color: #2563eb; margin-right: 6px; }
+        .mb-row span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 2px;
+        }
         .mb-price { color: #2563eb; font-weight: 800; margin-left: 5px; }
         .mb-price.free { color: #16a34a; }
 
-        .mb-side p { margin: 4px 0; color: #4f6687; font-size: 8px; }
+        .mb-side {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid #dbe7f5;
+            border-radius: 14px;
+            padding: 12px 14px;
+            min-height: 100%;
+        }
+        .mb-side p { margin: 8px 0; color: #4f6687; font-size: 12px; }
         .mb-side i { color: #3b82f6; margin-right: 4px; }
         .mb-access i.vip { color: #eab308; }
         .mb-access i.premium { color: #a855f7; }
         .mb-access i.standard { color: #22c55e; }
 
-        .mb-actions { text-align: right; }
-        .mb-booking-id { color: #9ca3af; font-size: 8px; margin-bottom: 4px; }
-        .mb-btns { display: grid; justify-items: end; gap: 4px; }
+        .mb-actions {
+            text-align: right;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid #dbe7f5;
+            border-radius: 14px;
+            padding: 12px;
+        }
+        .mb-booking-id { color: #64748b; font-size: 11px; margin-bottom: 10px; line-height: 1.35; }
+        .mb-btns { display: grid; justify-items: stretch; gap: 8px; }
         .mb-btn {
-            height: 24px;
-            min-width: 70px;
-            border-radius: 7px;
+            height: 30px;
+            min-width: 100%;
+            border-radius: 9px;
             border: 1px solid transparent;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
-            padding: 0 10px;
+            padding: 0 14px;
             background: #fff;
         }
         .mb-btn.show { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
@@ -68,14 +100,16 @@
         .mb-empty { background: #fff; border: 1px solid #dde4ef; border-radius: 12px; padding: 18px; color: #4b5f7c; font-size: 12px; text-align: center; }
 
         @@media (max-width: 1100px) {
-            .mb-card { grid-template-columns: 64px 1fr; }
+            .mb-card { grid-template-columns: 88px 1fr; }
             .mb-side, .mb-actions { grid-column: 2 / -1; }
             .mb-actions { text-align: left; }
             .mb-btns { justify-items: start; }
+            .mb-btn { min-width: 140px; }
         }
         @@media (max-width: 700px) {
             .mb-wrap { padding: 10px; }
             .mb-card { grid-template-columns: 1fr; }
+            .mb-thumb { width: 100%; height: 180px; }
             .mb-side, .mb-actions { grid-column: auto; }
         }
     </style>
@@ -144,7 +178,7 @@
                             else
                             {
                                 <a class="mb-btn primary"
-                                   href="@Url.Action("DownloadTicket", "Attend", new { id = item.EventId, ticket = item.TicketLabel, total = ticketAmount, qty = item.Quantity, bookingId = item.BookingCode })">
+                                   href="@Url.Action("DownloadInvoicePdf", "Attend", new { id = item.EventId, ticket = item.TicketLabel, total = ticketAmount, qty = item.Quantity, bookingId = item.BookingCode })">
                                     Download
                                 </a>
                                 <form method="post" action="@Url.Action("CancelBooking", "Attend")">
