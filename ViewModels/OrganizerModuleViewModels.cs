@@ -40,6 +40,9 @@ public class OrganizerEventDetailsViewModel
 public class OrganizerBookingsViewModel
 {
     public string Search { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public int? EventId { get; set; }
+    public List<EventItem> Events { get; set; } = new();
     public List<OrganizerBookingRowViewModel> Rows { get; set; } = new();
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 10;

@@ -4,6 +4,7 @@ using Eventify.Utilities;
 using Eventify.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Eventify.Controllers;
@@ -466,7 +467,7 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         return View(model);
     }
 
-    public async Task<IActionResult> Bookings(string? q, int page = 1)
+    public async Task<IActionResult> Bookings(string? q, string? status, int? eventId, int page = 1)
     {
         ViewData["Title"] = "Booking Management";
         ViewData["OrgNav"] = "bookings";
@@ -486,6 +487,17 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
                 x.Booking.BookingCode.ToLower().Contains(term)
                 || x.Booking.UserEmail.ToLower().Contains(term)
                 || x.Event.Title.ToLower().Contains(term)).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var normalizedStatus = status.Trim().ToLowerInvariant();
+            rows = rows.Where(x => x.Booking.Status.ToLower() == normalizedStatus).ToList();
+        }
+
+        if (eventId.HasValue && eventId.Value > 0)
+        {
+            rows = rows.Where(x => x.Event.Id == eventId.Value).ToList();
         }
 
         var mappedRows = rows.Select(x => new OrganizerBookingRowViewModel
@@ -514,6 +526,9 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         var model = new OrganizerBookingsViewModel
         {
             Search = q ?? string.Empty,
+            Status = status ?? string.Empty,
+            EventId = eventId,
+            Events = await db.Events.OrderBy(e => e.Title).ToListAsync(),
             Rows = pageRows,
             Page = page,
             PageSize = pageSize,
@@ -522,6 +537,57 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
         };
 
         return View(model);
+    }
+
+    public async Task<IActionResult> ExportBookingsCsv(string? q, string? status, int? eventId)
+    {
+        var rows = await db.MyBookings
+            .Join(db.Events, b => b.EventItemId, e => e.Id, (b, e) => new { Booking = b, Event = e })
+            .OrderByDescending(x => x.Booking.CreatedAtUtc)
+            .ToListAsync();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLowerInvariant();
+            rows = rows.Where(x =>
+                x.Booking.BookingCode.ToLower().Contains(term)
+                || x.Booking.UserEmail.ToLower().Contains(term)
+                || x.Event.Title.ToLower().Contains(term)).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var normalizedStatus = status.Trim().ToLowerInvariant();
+            rows = rows.Where(x => x.Booking.Status.ToLower() == normalizedStatus).ToList();
+        }
+
+        if (eventId.HasValue && eventId.Value > 0)
+        {
+            rows = rows.Where(x => x.Event.Id == eventId.Value).ToList();
+        }
+
+        var csv = new StringBuilder();
+        csv.AppendLine("BookingId,AttendeeName,AttendeeEmail,Event,TicketType,Qty,Amount,Status,Date");
+
+        foreach (var row in rows)
+        {
+            var bookingCode = string.IsNullOrWhiteSpace(row.Booking.BookingCode) ? $"BK{row.Booking.Id:0000}" : row.Booking.BookingCode;
+            csv.AppendLine(string.Join(",",
+                Csv(bookingCode),
+                Csv(GetDisplayNameFromEmail(row.Booking.UserEmail)),
+                Csv(row.Booking.UserEmail),
+                Csv(row.Event.Title),
+                Csv(row.Booking.TicketName),
+                Csv(Math.Max(1, row.Booking.Quantity).ToString()),
+                Csv(row.Booking.TotalAmount.ToString("0.00")),
+                Csv(row.Booking.Status),
+                Csv(row.Booking.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd"))));
+        }
+
+        return File(
+            Encoding.UTF8.GetBytes(csv.ToString()),
+            "text/csv",
+            $"bookings-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
     }
 
     [HttpPost]
@@ -988,6 +1054,12 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
 
         var days = (int)Math.Round(span.TotalDays);
         return $"{days} day{(days == 1 ? "" : "s")} ago";
+    }
+
+    private static string Csv(string? value)
+    {
+        var safe = (value ?? string.Empty).Replace("\"", "\"\"");
+        return $"\"{safe}\"";
     }
 
     private string ResolveOrganizerEmail()

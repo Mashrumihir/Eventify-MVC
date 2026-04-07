@@ -5,6 +5,18 @@
     var salesMax = Math.Max(1, Model.SalesSeries.DefaultIfEmpty(1).Max());
     var revenueMax = Math.Max(1, Model.RevenueSeries.DefaultIfEmpty(1).Max());
     var chartMax = Math.Max(salesMax, revenueMax);
+    var visitorMax = Math.Max(1, Model.VisitorsSeries.DefaultIfEmpty(1).Max());
+    List<int> BuildScale(int maxValue)
+    {
+        return new List<int>
+        {
+            maxValue,
+            (int)Math.Round(maxValue * 0.75m),
+            (int)Math.Round(maxValue * 0.50m),
+            (int)Math.Round(maxValue * 0.25m),
+            0
+        };
+    }
     string BuildPolyline(IReadOnlyList<int> values)
     {
         if (values.Count == 0)
@@ -60,6 +72,8 @@
 
     var salesChartPoints = BuildChartPoints(Model.SalesSeries);
     var revenueChartPoints = BuildChartPoints(Model.RevenueSeries);
+    var salesScale = BuildScale(chartMax);
+    var visitorScale = BuildScale(visitorMax);
 }
 
 @section PageStyles {
@@ -85,6 +99,9 @@
         .od-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .od-panel { background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px; }
         .od-panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
+        .od-line-layout, .od-bars-layout { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: stretch; }
+        .od-axis { height: 300px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0 30px; color: #94a3b8; font-size: 12px; text-align: right; }
+        .od-axis span { line-height: 1; }
         .od-line-wrap { height: 300px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; padding: 10px; }
         .od-line-svg { width: 100%; height: 100%; display: block; touch-action: manipulation; }
         .od-line-dot { cursor: pointer; }
@@ -159,60 +176,78 @@
     <div class="od-grid">
         <article class="od-panel">
             <h2>Sales Chart</h2>
-            <div class="od-line-wrap">
-                <svg class="od-line-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
-                    <polyline fill="none" stroke="#3b82f6" stroke-width="4" points="@salesPoints" />
-                    <polyline fill="none" stroke="#14b8a6" stroke-width="4" points="@revenuePoints" />
-                    @for (var i = 0; i < salesChartPoints.Count; i++)
+            <div class="od-line-layout">
+                <div class="od-axis" aria-hidden="true">
+                    @foreach (var tick in salesScale)
                     {
-                        var point = salesChartPoints[i];
-                        var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
-                        <circle class="od-line-dot"
-                                cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
-                                cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
-                                r="6"
-                                fill="#3b82f6"
-                                data-tip-title="Sales"
-                                data-tip-date="@label"
-                                data-tip-value="@point.value" />
+                        <span>@tick.ToString("0,0")</span>
                     }
-                    @for (var i = 0; i < revenueChartPoints.Count; i++)
-                    {
-                        var point = revenueChartPoints[i];
-                        var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
-                        <circle class="od-line-dot"
-                                cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
-                                cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
-                                r="6"
-                                fill="#14b8a6"
-                                data-tip-title="Revenue"
-                                data-tip-date="@label"
-                                data-tip-value="@point.value" />
-                    }
-                </svg>
+                </div>
+                <div class="od-line-wrap">
+                    <svg class="od-line-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
+                        <polyline fill="none" stroke="#3b82f6" stroke-width="4" points="@salesPoints" />
+                        <polyline fill="none" stroke="#14b8a6" stroke-width="4" points="@revenuePoints" />
+                        @for (var i = 0; i < salesChartPoints.Count; i++)
+                        {
+                            var point = salesChartPoints[i];
+                            var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
+                            <circle class="od-line-dot"
+                                    cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    r="6"
+                                    fill="#3b82f6"
+                                    data-tip-title="Sales"
+                                    data-tip-date="@label"
+                                    data-tip-value="@point.value"
+                                    data-tip-label="Sales" />
+                        }
+                        @for (var i = 0; i < revenueChartPoints.Count; i++)
+                        {
+                            var point = revenueChartPoints[i];
+                            var label = i < Model.DateLabels.Count ? Model.DateLabels[i] : $"Point {i + 1}";
+                            <circle class="od-line-dot"
+                                    cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    r="6"
+                                    fill="#14b8a6"
+                                    data-tip-title="Revenue"
+                                    data-tip-date="@label"
+                                    data-tip-value="@point.value"
+                                    data-tip-label="Revenue" />
+                        }
+                    </svg>
+                </div>
             </div>
             <div class="od-legend"><span><i class="od-dot blue"></i>Sales</span><span><i class="od-dot green"></i>Revenue</span></div>
         </article>
 
         <article class="od-panel">
             <h2>Visitors Chart</h2>
-            <div class="od-chart od-bars">
-                @{
-                    var max = Math.Max(1, Model.VisitorsSeries.DefaultIfEmpty(1).Max());
-                    for (var i = 0; i < dayNames.Length; i++)
+            <div class="od-bars-layout">
+                <div class="od-axis" aria-hidden="true">
+                    @foreach (var tick in visitorScale)
                     {
-                        var value = i < Model.VisitorsSeries.Count ? Model.VisitorsSeries[i] : 0;
-                        var dateLabel = i < Model.DateLabels.Count ? Model.DateLabels[i] : dayNames[i];
-                        var h = (int)Math.Round((value * 220.0) / max);
-                        <div class="bar"
-                             style="height:@(h)px;"
-                             data-tip-title="Visitors"
-                             data-tip-date="@dateLabel"
-                             data-tip-value="@value">
-                            <span class="label" style="left:24px;">@dayNames[i]</span>
-                        </div>
+                        <span>@tick.ToString("0,0")</span>
                     }
-                }
+                </div>
+                <div class="od-chart od-bars">
+                    @{
+                        for (var i = 0; i < dayNames.Length; i++)
+                        {
+                            var value = i < Model.VisitorsSeries.Count ? Model.VisitorsSeries[i] : 0;
+                            var dateLabel = i < Model.DateLabels.Count ? Model.DateLabels[i] : dayNames[i];
+                            var h = (int)Math.Round((value * 220.0) / visitorMax);
+                            <div class="bar"
+                                 style="height:@(h)px;"
+                                 data-tip-title="Visitors"
+                                 data-tip-date="@dateLabel"
+                                 data-tip-value="@value"
+                                 data-tip-label="Visitors">
+                                <span class="label" style="left:24px;">@dayNames[i]</span>
+                            </div>
+                        }
+                    }
+                </div>
             </div>
         </article>
     </div>
@@ -262,7 +297,8 @@
         const title = target.getAttribute("data-tip-title") || "Bookings";
         const date = target.getAttribute("data-tip-date") || "";
         const value = target.getAttribute("data-tip-value") || "0";
-        tooltip.innerHTML = `<strong>${title}</strong><br>${date}<br>Bookings: ${value}`;
+        const label = target.getAttribute("data-tip-label") || title;
+        tooltip.innerHTML = `<strong>${title}</strong><br>${date}<br>${label}: ${value}`;
         const rect = target.getBoundingClientRect();
         tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
         tooltip.style.top = `${rect.top}px`;

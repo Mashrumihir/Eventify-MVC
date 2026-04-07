@@ -3,6 +3,8 @@
     Layout = "_AttendLayout";
     ViewData["Title"] = "Event Details";
     var defaultPrice = Model.TicketOptions.FirstOrDefault()?.Price ?? (Model.Event.Price > 0 ? Model.Event.Price : 0);
+    var reviewCount = Model.Reviews.Count;
+    var averageRating = reviewCount > 0 ? Model.Reviews.Average(r => r.Rating) : Model.Event.Rating;
 }
 
 @section PageStyles {
@@ -21,6 +23,17 @@
         .ed-line { margin: 0 0 6px; color: #334155; display: flex; align-items: center; gap: 8px; font-size: 14px; }
         .ed-line i { color: #3b82f6; }
         .ed-desc { margin: 8px 0 0; color: #475569; line-height: 1.5; font-size: 14px; }
+        .ed-review-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .ed-stars { color: #f59e0b; letter-spacing: 2px; font-size: 14px; }
+        .ed-review-list { display: grid; gap: 12px; }
+        .ed-review-card { padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+        .ed-review-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .ed-review-user { display: flex; align-items: center; gap: 10px; }
+        .ed-review-avatar { width: 42px; height: 42px; border-radius: 999px; object-fit: cover; border: 1px solid #dbe3ef; background: #e2e8f0; }
+        .ed-review-user strong { display: block; color: #1e293b; font-size: 14px; }
+        .ed-review-time { color: #94a3b8; font-size: 12px; }
+        .ed-review-text { margin: 0; color: #475569; line-height: 1.6; font-size: 14px; }
+        .ed-empty { margin: 0; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 16px; color: #64748b; background: #f8fafc; text-align: center; }
         .ed-book h3 { margin: 0 0 10px; font-size: 22px; font-weight: 800; }
         .ed-ticket { border: 1px solid #d8dde5; border-radius: 12px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
         .ed-ticket.active { border: 2px solid #3b82f6; background: #f1f6ff; }
@@ -48,7 +61,7 @@
                     <span class="ed-pill">@Model.Event.Category</span>
                     <h1>@Model.Event.Title</h1>
                     <div class="ed-meta">
-                        <span><i class="bi bi-star-fill"></i> @Model.Event.Rating.ToString("0.0")</span>
+                        <span><i class="bi bi-star-fill"></i> @averageRating.ToString("0.0") (@reviewCount reviews)</span>
                         <span><i class="bi bi-people-fill"></i> @Model.Event.AttendingCount attending</span>
                     </div>
                 </div>
@@ -62,6 +75,39 @@
                 <p class="ed-desc">@Model.Event.Description</p>
             </article>
 
+            <article class="ed-panel ed-section">
+                <div class="ed-review-head">
+                    <h2>Reviews</h2>
+                </div>
+
+                @if (reviewCount == 0)
+                {
+                    <p class="ed-empty">No reviews yet. Be the first attendee to leave feedback for this event.</p>
+                }
+                else
+                {
+                    <div class="ed-review-list">
+                        @foreach (var review in Model.Reviews.Take(4))
+                        {
+                            var avatar = string.IsNullOrWhiteSpace(review.AvatarUrl)
+                                ? "https://ui-avatars.com/api/?background=DBEAFE&color=1D4ED8&name=" + Uri.EscapeDataString(string.IsNullOrWhiteSpace(review.UserName) ? "Guest User" : review.UserName)
+                                : review.AvatarUrl;
+                            <article class="ed-review-card">
+                                <div class="ed-review-top">
+                                    <div class="ed-review-user">
+                                        <img class="ed-review-avatar" src="@avatar" alt="@review.UserName" />
+                                        <div>
+                                            <strong>@(string.IsNullOrWhiteSpace(review.UserName) ? "Guest User" : review.UserName)</strong>
+                                            <div class="ed-review-time">@(string.IsNullOrWhiteSpace(review.TimeAgo) ? "Recently" : review.TimeAgo)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="ed-review-text">@review.Comment</p>
+                            </article>
+                        }
+                    </div>
+                }
+            </article>
         </div>
 
         <aside class="ed-panel ed-book">

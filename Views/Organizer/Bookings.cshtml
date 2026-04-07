@@ -7,9 +7,16 @@
 @section PageStyles {
 <style>
 .bk-wrap{padding:24px}.bk-head{display:flex;justify-content:space-between;align-items:flex-start}.bk-head h1{margin:0;font-size: 25px;font-weight:800}.bk-head p{margin:6px 0 0;color:#667085;font-size: 14px}
-.tools{display:flex;gap:10px}.tool{background:#fff;border:1px solid #cfd4dc;border-radius:11px;padding:10px 16px;color:#344054;text-decoration:none;font-size: 12px}
+.tools{display:flex;gap:10px}.tool{background:#fff;border:1px solid #cfd4dc;border-radius:11px;padding:10px 16px;color:#344054;text-decoration:none;font-size: 12px}.tool-btn{cursor:pointer}
 .search{margin-top:14px;background:#fff;border:1px solid #cfd4dc;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center}
 .search input{border:0;outline:0;width:100%;font-size: 14px}
+.filter-panel{display:none;margin-top:12px;background:#fff;border:1px solid #d8dde5;border-radius:16px;padding:14px}
+.filter-panel.open{display:block}
+.filter-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+.field label{display:block;margin-bottom:6px;color:#344054;font-size:12px;font-weight:700}
+.field select{width:100%;height:42px;border:1px solid #cfd4dc;border-radius:10px;padding:0 12px;background:#fff;color:#344054}
+.filter-actions{display:flex;gap:10px}
+.ghost{background:#f8fafc}
 .table-wrap{margin-top:14px;background:#fff;border:1px solid #d8dde5;border-radius:18px;overflow:hidden}
 table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px solid #e4e7ec;font-size: 13px;color:#344054}th{border-top:0;background:#f8fafc;color:#1f2937;font-weight:700}
 .badge{padding:4px 10px;border-radius:999px;font-size: 12px;font-weight:700}.ok{background:#dcfce7;color:#16a34a}.pending{background:#fef3c7;color:#ca8a04}.cancel{background:#fee2e2;color:#ef4444}
@@ -20,7 +27,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
 .pager a,.pager span{border:1px solid #cfd4dc;border-radius:8px;padding:6px 10px;font-size:12px;text-decoration:none}
 .pager a{background:#fff;color:#344054}
 .pager .disabled{background:#f8fafc;color:#98a2b3;border-color:#e4e7ec}
-@@media(max-width:1200px){.table-wrap{overflow:auto;}.bk-head h1{font-size: 18px}}
+@@media(max-width:1200px){.table-wrap{overflow:auto;}.bk-head h1{font-size: 18px}.filter-grid{grid-template-columns:1fr}}
 </style>
 }
 
@@ -31,14 +38,73 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
             <p>Manage all event bookings and attendees.</p>
         </div>
         <div class="tools">
-            <a class="tool" href="#"><i class="bi bi-funnel"></i> Filter</a>
-            <a class="tool" href="#"><i class="bi bi-download"></i> Export CSV</a>
+            <button id="filterToggle" class="tool tool-btn" type="button"><i class="bi bi-funnel"></i> Filter</button>
+            <a class="tool" href="@Url.Action("ExportBookingsCsv", "Organizer", new { q = Model.Search, status = Model.Status, eventId = Model.EventId })"><i class="bi bi-download"></i> Export CSV</a>
         </div>
     </header>
 
     <form method="get" class="search">
         <i class="bi bi-search" style="font-size: 12px;color:#98a2b3;"></i>
         <input type="text" name="q" value="@Model.Search" placeholder="Search by attendee, email, or event..." />
+        <input type="hidden" name="status" value="@Model.Status" />
+        <input type="hidden" name="eventId" value="@Model.EventId" />
+    </form>
+
+    <form id="filterPanel" method="get" class="filter-panel @(string.IsNullOrWhiteSpace(Model.Status) && !Model.EventId.HasValue ? "" : "open")">
+        <input type="hidden" name="q" value="@Model.Search" />
+        <div class="filter-grid">
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">All statuses</option>
+                    @if (Model.Status == "Booked")
+                    {
+                        <option value="Booked" selected>Booked</option>
+                    }
+                    else
+                    {
+                        <option value="Booked">Booked</option>
+                    }
+                    @if (Model.Status == "Pending")
+                    {
+                        <option value="Pending" selected>Pending</option>
+                    }
+                    else
+                    {
+                        <option value="Pending">Pending</option>
+                    }
+                    @if (Model.Status == "Canceled")
+                    {
+                        <option value="Canceled" selected>Canceled</option>
+                    }
+                    else
+                    {
+                        <option value="Canceled">Canceled</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="eventId">Event</label>
+                <select id="eventId" name="eventId">
+                    <option value="">All events</option>
+                    @foreach (var item in Model.Events)
+                    {
+                        if (Model.EventId == item.Id)
+                        {
+                            <option value="@item.Id" selected>@item.Title</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="tool tool-btn" type="submit">Apply</button>
+                <a class="tool ghost" href="@Url.Action("Bookings", "Organizer")">Reset</a>
+            </div>
+        </div>
     </form>
 
     <div class="table-wrap">
@@ -83,7 +149,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
             <div class="pager">
                 @if (Model.HasPrevious)
                 {
-                    <a href="@Url.Action("Bookings", "Organizer", new { q = Model.Search, page = Model.Page - 1 })">Previous</a>
+                    <a href="@Url.Action("Bookings", "Organizer", new { q = Model.Search, status = Model.Status, eventId = Model.EventId, page = Model.Page - 1 })">Previous</a>
                 }
                 else
                 {
@@ -94,7 +160,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
 
                 @if (Model.HasNext)
                 {
-                    <a href="@Url.Action("Bookings", "Organizer", new { q = Model.Search, page = Model.Page + 1 })">Next</a>
+                    <a href="@Url.Action("Bookings", "Organizer", new { q = Model.Search, status = Model.Status, eventId = Model.EventId, page = Model.Page + 1 })">Next</a>
                 }
                 else
                 {
@@ -104,4 +170,18 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
         </div>
     </div>
 </section>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("filterToggle");
+    const panel = document.getElementById("filterPanel");
+    if (!toggle || !panel) return;
+
+    toggle.addEventListener("click", function () {
+        panel.classList.toggle("open");
+    });
+});
+</script>
+}
 
