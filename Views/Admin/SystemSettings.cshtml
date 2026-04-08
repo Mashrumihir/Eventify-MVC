@@ -7,30 +7,236 @@
 <style>
 .ad-title{margin:0;font-size:22px;color:#1f3e76}
 .ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
-
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.topbar-actions{display:flex;align-items:center;justify-content:flex-end}
+.ok-msg{margin:0 0 10px;font-size:12px !important;color:#0c9b5a;font-weight:700}
 .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
-.cat{padding:12px}
+.cat{padding:14px;display:flex;flex-direction:column;gap:10px;min-height:170px}
+.cat-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.cat-copy{display:flex;flex-direction:column;gap:4px}
 .cat h3{font-size:16px;margin:8px 0 4px;color:#1f3e76}
 .cat p{font-size:12px;color:#667085;margin:0 0 8px}
 .cat .count{font-size:18px;color:#325ea9;font-weight:800}
 .ic{width:40px;height:40px;border-radius:999px;background:#315aa6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.cat-edit{border:1px solid #d6e3f3;background:#f8fbff;color:#315aa6;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.cat-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#667085;font-size:12px}
+.category-modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(12,23,45,.52);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:16px;
+}
+.category-modal-backdrop.show{display:flex}
+.category-modal{
+    width:min(100%,560px);
+    border:1px solid #d4deee;
+    background:#fff;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 28px 70px rgba(15,23,42,.28);
+}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.modal-head h2{margin:0;color:#1c355f;font-size:20px}
+.modal-head p{margin:4px 0 0;font-size:12px;color:#60779b}
+.modal-close{
+    border:0;
+    background:#edf4ff;
+    color:#315aa6;
+    width:34px;
+    height:34px;
+    border-radius:999px;
+    cursor:pointer;
+}
+.category-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.category-field{display:flex;flex-direction:column;gap:5px}
+.category-field.full{grid-column:1 / -1}
+.category-field label{font-size:11px;font-weight:700;color:#4e678b}
+.category-field input,.category-field textarea{
+    width:100%;
+    border:1px solid #cad7ea;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:13px;
+    color:#1f3e76;
+    background:#fff;
+}
+.category-field textarea{min-height:96px;resize:vertical}
+.icon-hint{font-size:11px;color:#6b7280;margin:0}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.btn-lite{
+    border:1px solid #d6e3f3;
+    background:#fff;
+    color:#315aa6;
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
 
 @@media(max-width:1200px){.grid{grid-template-columns:1fr 1fr}}
+@@media(max-width:760px){
+    .grid{grid-template-columns:1fr}
+    .category-form-grid{grid-template-columns:1fr}
+}
 </style>
 }
 
-<h1 class="ad-title">System Settings</h1>
-<p class="ad-sub">Configure platform settings.</p>
+<div class="topbar">
+    <div>
+        <h1 class="ad-title">System Settings</h1>
+        <p class="ad-sub">Configure platform settings.</p>
+    </div>
+    <div class="topbar-actions">
+        <button id="openCategoryModal" class="btn-grad" type="button"><i class="bi bi-plus-lg"></i> Add Category</button>
+    </div>
+</div>
 
-<div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-grad" type="button"><i class="bi bi-plus-lg"></i> Add Category</button></div>
+@if (TempData["AdminActionMessage"] is string actionMessage && !string.IsNullOrWhiteSpace(actionMessage))
+{
+    <p class="ok-msg">@actionMessage</p>
+}
+
 <div class="grid">
     @foreach (var c in Model.Categories)
     {
         <article class="card cat">
-            <span class="ic"><i class="bi @c.Icon"></i></span>
-            <h3>@c.Name</h3>
-            <p>@c.Description</p>
-            <p>Events <span class="count" style="float:right">@c.EventCount</span></p>
+            <div class="cat-top">
+                <span class="ic"><i class="bi @c.Icon"></i></span>
+                <button
+                    class="cat-edit js-edit-category"
+                    type="button"
+                    data-id="@c.Id"
+                    data-name="@c.Name"
+                    data-description="@c.Description"
+                    data-icon="@c.Icon"
+                    data-count="@c.EventCount">
+                    Edit
+                </button>
+            </div>
+            <div class="cat-copy">
+                <h3>@c.Name</h3>
+                <p>@c.Description</p>
+            </div>
+            <div class="cat-footer">
+                <span>Events</span>
+                <span class="count">@c.EventCount</span>
+            </div>
         </article>
     }
 </div>
+
+<div id="categoryModal" class="category-modal-backdrop">
+    <form id="categoryForm" class="category-modal" method="post" asp-controller="Admin" asp-action="SaveCategory">
+        @Html.AntiForgeryToken()
+        <input id="categoryId" name="id" type="hidden" />
+        <div class="modal-head">
+            <div>
+                <h2 id="categoryModalTitle">Add Category</h2>
+                <p>Create or update the category cards shown in system settings.</p>
+            </div>
+            <button id="closeCategoryModal" class="modal-close" type="button" aria-label="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="category-form-grid">
+            <div class="category-field">
+                <label for="categoryName">Category Name</label>
+                <input id="categoryName" name="name" type="text" required />
+            </div>
+            <div class="category-field">
+                <label for="categoryCount">Event Count</label>
+                <input id="categoryCount" name="eventCount" type="number" min="0" required />
+            </div>
+            <div class="category-field full">
+                <label for="categoryDescription">Description</label>
+                <textarea id="categoryDescription" name="description" required></textarea>
+            </div>
+            <div class="category-field full">
+                <label for="categoryIcon">Bootstrap Icon Class</label>
+                <input id="categoryIcon" name="icon" type="text" value="bi-tag" required />
+                <p class="icon-hint">Example: `bi-pc-display`, `bi-music-note-beamed`, `bi-dribbble`.</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelCategoryModal" class="btn-lite" type="button">Cancel</button>
+            <button id="categorySubmitBtn" class="btn-grad" type="submit">Save Category</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const modal = document.getElementById("categoryModal");
+        const openBtn = document.getElementById("openCategoryModal");
+        const closeBtn = document.getElementById("closeCategoryModal");
+        const cancelBtn = document.getElementById("cancelCategoryModal");
+        const form = document.getElementById("categoryForm");
+        const modalTitle = document.getElementById("categoryModalTitle");
+        const submitBtn = document.getElementById("categorySubmitBtn");
+        const categoryId = document.getElementById("categoryId");
+        const categoryName = document.getElementById("categoryName");
+        const categoryDescription = document.getElementById("categoryDescription");
+        const categoryIcon = document.getElementById("categoryIcon");
+        const categoryCount = document.getElementById("categoryCount");
+        const editButtons = Array.from(document.querySelectorAll(".js-edit-category"));
+
+        if (!modal || !openBtn || !closeBtn || !cancelBtn || !form || !modalTitle || !submitBtn || !categoryId || !categoryName || !categoryDescription || !categoryIcon || !categoryCount) {
+            return;
+        }
+
+        function openModal() {
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            modal.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function setAddMode() {
+            form.reset();
+            categoryId.value = "";
+            categoryIcon.value = "bi-tag";
+            categoryCount.value = "0";
+            modalTitle.textContent = "Add Category";
+            submitBtn.textContent = "Save Category";
+        }
+
+        openBtn.addEventListener("click", function () {
+            setAddMode();
+            openModal();
+            categoryName.focus();
+        });
+
+        closeBtn.addEventListener("click", closeModal);
+        cancelBtn.addEventListener("click", closeModal);
+
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        editButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                categoryId.value = btn.getAttribute("data-id") || "";
+                categoryName.value = btn.getAttribute("data-name") || "";
+                categoryDescription.value = btn.getAttribute("data-description") || "";
+                categoryIcon.value = btn.getAttribute("data-icon") || "bi-tag";
+                categoryCount.value = btn.getAttribute("data-count") || "0";
+                modalTitle.textContent = "Edit Category";
+                submitBtn.textContent = "Update Category";
+                openModal();
+                categoryName.focus();
+            });
+        });
+    })();
+</script>
+}

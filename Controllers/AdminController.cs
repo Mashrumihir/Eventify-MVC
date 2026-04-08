@@ -552,6 +552,65 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveCategory(int? id, string name, string description, string icon = "bi-tag", int eventCount = 0)
+    {
+        var trimmedName = (name ?? string.Empty).Trim();
+        var trimmedDescription = (description ?? string.Empty).Trim();
+        var trimmedIcon = string.IsNullOrWhiteSpace(icon) ? "bi-tag" : icon.Trim();
+        var normalizedEventCount = Math.Max(0, eventCount);
+
+        if (string.IsNullOrWhiteSpace(trimmedName) || string.IsNullOrWhiteSpace(trimmedDescription))
+        {
+            TempData["AdminActionMessage"] = "Enter both category name and description.";
+            return RedirectToAction(nameof(SystemSettings));
+        }
+
+        var duplicateExists = await db.AdminCategories.AnyAsync(x =>
+            x.Id != (id ?? 0) &&
+            x.Name.ToLower() == trimmedName.ToLower());
+
+        if (duplicateExists)
+        {
+            TempData["AdminActionMessage"] = "A category with this name already exists.";
+            return RedirectToAction(nameof(SystemSettings));
+        }
+
+        if (id.HasValue && id.Value > 0)
+        {
+            var existing = await db.AdminCategories.FirstOrDefaultAsync(x => x.Id == id.Value);
+            if (existing is null)
+            {
+                TempData["AdminActionMessage"] = "Category not found.";
+                return RedirectToAction(nameof(SystemSettings));
+            }
+
+            existing.Name = trimmedName;
+            existing.Description = trimmedDescription;
+            existing.Icon = trimmedIcon;
+            existing.EventCount = normalizedEventCount;
+
+            TempData["AdminActionMessage"] = $"{trimmedName} updated successfully.";
+        }
+        else
+        {
+            db.AdminCategories.Add(new AdminCategory
+            {
+                Name = trimmedName,
+                Description = trimmedDescription,
+                Icon = trimmedIcon,
+                EventCount = normalizedEventCount,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+
+            TempData["AdminActionMessage"] = $"{trimmedName} added successfully.";
+        }
+
+        await db.SaveChangesAsync();
+        return RedirectToAction(nameof(SystemSettings));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateOrganizerApplication(string organizationName, string email, string status = "pending")
     {
         var org = (organizationName ?? string.Empty).Trim();
