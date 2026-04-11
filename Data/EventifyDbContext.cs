@@ -26,6 +26,7 @@ public class EventifyDbContext(DbContextOptions<EventifyDbContext> options) : Db
     public DbSet<AdminCategory> AdminCategories => Set<AdminCategory>();
     public DbSet<AdminReviewRating> AdminReviewRatings => Set<AdminReviewRating>();
     public DbSet<AdminDashboardTrend> AdminDashboardTrends => Set<AdminDashboardTrend>();
+    public DbSet<AdminNewsletterSubscriber> AdminNewsletterSubscribers => Set<AdminNewsletterSubscriber>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -129,6 +130,14 @@ public class EventifyDbContext(DbContextOptions<EventifyDbContext> options) : Db
 
         modelBuilder.Entity<AdminDashboardTrend>()
             .HasIndex(trend => trend.Metric)
+            .IsUnique();
+
+        modelBuilder.Entity<AdminNewsletterSubscriber>()
+            .Property(subscriber => subscriber.Email)
+            .HasMaxLength(256);
+
+        modelBuilder.Entity<AdminNewsletterSubscriber>()
+            .HasIndex(subscriber => subscriber.Email)
             .IsUnique();
 
         modelBuilder.Entity<AdminEventModeration>()

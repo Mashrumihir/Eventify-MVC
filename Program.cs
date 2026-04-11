@@ -119,6 +119,28 @@ using (var scope = app.Services.CreateScope())
             CREATE INDEX [IX_AuthCodes_Email_Purpose_Code] ON [dbo].[AuthCodes] ([Email], [Purpose], [Code]);
         END;
         """);
+    db.Database.ExecuteSqlRaw(
+        """
+        IF OBJECT_ID(N'[dbo].[AdminNewsletterSubscribers]', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[AdminNewsletterSubscribers] (
+                [Id] int NOT NULL IDENTITY,
+                [Email] nvarchar(256) NOT NULL,
+                [CreatedAtUtc] datetime2 NOT NULL,
+                CONSTRAINT [PK_AdminNewsletterSubscribers] PRIMARY KEY ([Id])
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_AdminNewsletterSubscribers_Email'
+              AND object_id = OBJECT_ID(N'[dbo].[AdminNewsletterSubscribers]')
+        )
+        BEGIN
+            CREATE UNIQUE INDEX [IX_AdminNewsletterSubscribers_Email] ON [dbo].[AdminNewsletterSubscribers] ([Email]);
+        END;
+        """);
     DbInitializer.Seed(db);
 
     if (!db.Bookings.Any() && db.Events.Any())
@@ -507,6 +529,28 @@ using (var scope = app.Services.CreateScope())
             new Eventify.Models.AdminDashboardTrend { Metric = "organizers", PercentChange = 8.2m },
             new Eventify.Models.AdminDashboardTrend { Metric = "events", PercentChange = 15.3m },
             new Eventify.Models.AdminDashboardTrend { Metric = "revenue", PercentChange = -3.1m }
+        );
+        db.SaveChanges();
+    }
+
+    if (!db.AdminNewsletterSubscribers.Any())
+    {
+        db.AdminNewsletterSubscribers.AddRange(
+            new Eventify.Models.AdminNewsletterSubscriber
+            {
+                Email = "events@eventify.com",
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-5)
+            },
+            new Eventify.Models.AdminNewsletterSubscriber
+            {
+                Email = "offers@eventify.com",
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-3)
+            },
+            new Eventify.Models.AdminNewsletterSubscriber
+            {
+                Email = "updates@eventify.com",
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-1)
+            }
         );
         db.SaveChanges();
     }

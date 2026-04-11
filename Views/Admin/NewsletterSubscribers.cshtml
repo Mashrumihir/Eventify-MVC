@@ -1,0 +1,116 @@
+@model Eventify.ViewModels.AdminNewsletterSubscribersViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:22px;color:#1f3e76}
+.ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
+.sub-wrap{
+    border:1px solid #cfdced !important;
+    border-radius:14px !important;
+    background:#fff;
+    overflow:hidden;
+}
+.sub-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    background:linear-gradient(90deg,#315db5,#2eb2cc);
+    color:#fff;
+}
+.sub-top h2{margin:0;font-size:16px !important;color:#fff}
+.sub-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:44px;
+    height:30px;
+    padding:0 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    font-weight:800;
+}
+.sub-list{padding:12px}
+.sub-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    border:1px solid #d8e5f3;
+    border-radius:12px;
+    background:#f8fbff;
+    margin-bottom:10px;
+}
+.sub-item:last-child{margin-bottom:0}
+.sub-email{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    color:#21467d;
+    font-weight:700;
+    font-size:13px;
+}
+.sub-email i{
+    width:28px;
+    height:28px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#e6f0ff;
+    color:#2d5cad;
+    flex:0 0 auto;
+}
+.sub-time{
+    color:#647d9d;
+    font-size:12px;
+    white-space:nowrap;
+}
+.sub-empty{
+    padding:24px 16px;
+    text-align:center;
+    color:#647d9d;
+    font-size:13px;
+}
+@@media(max-width:760px){
+    .sub-top,.sub-item{flex-direction:column;align-items:flex-start}
+    .sub-time{white-space:normal}
+}
+</style>
+}
+
+<h1 class="ad-title">Newsletter Subscribers</h1>
+<p class="ad-sub">View everyone who subscribed from the admin dashboard newsletter section.</p>
+
+<section class="card sub-wrap">
+    <div class="sub-top">
+        <h2>Subscriber List</h2>
+        <span class="sub-pill">@Model.TotalSubscribers</span>
+    </div>
+
+    @if (Model.Subscribers.Count == 0)
+    {
+        <div class="sub-empty">No newsletter subscribers yet.</div>
+    }
+    else
+    {
+        <div class="sub-list">
+            @foreach (var subscriber in Model.Subscribers)
+            {
+                <div class="sub-item">
+                    <div class="sub-email">
+                        <i class="bi bi-envelope"></i>
+                        <span>@subscriber.Email</span>
+                    </div>
+                    <div class="sub-time">Added on @subscriber.AddedOnText</div>
+                </div>
+            }
+        </div>
+    }
+</section>

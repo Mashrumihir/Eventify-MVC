@@ -5,6 +5,7 @@ using Eventify.Utilities;
 using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 namespace Eventify.Controllers;
 
@@ -103,6 +104,11 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
 
         pendingApprovals.AddRange(pendingEvents);
 
+        var subscribers = await db.AdminNewsletterSubscribers
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Take(6)
+            .ToListAsync();
+
         var model = new AdminDashboardViewModel
         {
             TotalUsers = totalUsers,
@@ -113,10 +119,52 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
             OrganizersTrendPercent = organizersTrend,
             EventsTrendPercent = eventsTrend,
             RevenueTrendPercent = revenueTrend,
-            PendingApprovals = pendingApprovals
+            NewsletterSubscribersCount = await db.AdminNewsletterSubscribers.CountAsync(),
+            PendingApprovals = pendingApprovals,
+            NewsletterSubscribers = subscribers.Select(x => new AdminNewsletterSubscriberItemViewModel
+            {
+                Id = x.Id,
+                Email = x.Email,
+                AddedOnText = x.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+            }).ToList()
         };
 
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddNewsletterSubscriber(string email)
+    {
+        var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            TempData["AdminActionMessage"] = "Enter an email address.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        if (!IsValidEmail(normalizedEmail))
+        {
+            TempData["AdminActionMessage"] = "Enter a valid email address.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        var exists = await db.AdminNewsletterSubscribers.AnyAsync(x => x.Email == normalizedEmail);
+        if (exists)
+        {
+            TempData["AdminActionMessage"] = $"{normalizedEmail} is already subscribed.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        db.AdminNewsletterSubscribers.Add(new AdminNewsletterSubscriber
+        {
+            Email = normalizedEmail,
+            CreatedAtUtc = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        TempData["AdminActionMessage"] = $"{normalizedEmail} subscribed successfully.";
+        return RedirectToAction(nameof(Dashboard));
     }
 
     private async Task UpsertDashboardTrendAsync(string metric, decimal value)
@@ -692,6 +740,29 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         return View(model);
     }
 
+    public async Task<IActionResult> NewsletterSubscribers()
+    {
+        ViewData["Title"] = "Newsletter Subscribers";
+        ViewData["AdminNav"] = "newsletter";
+
+        var subscribers = await db.AdminNewsletterSubscribers
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .ToListAsync();
+
+        var model = new AdminNewsletterSubscribersViewModel
+        {
+            TotalSubscribers = subscribers.Count,
+            Subscribers = subscribers.Select(x => new AdminNewsletterSubscriberItemViewModel
+            {
+                Id = x.Id,
+                Email = x.Email,
+                AddedOnText = x.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+            }).ToList()
+        };
+
+        return View(model);
+    }
+
     public async Task<IActionResult> ReviewsRatings()
     {
         ViewData["Title"] = "Reviews & Ratings";
@@ -842,6 +913,19 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         if (span.TotalHours < 24) return $"{(int)span.TotalHours} hours ago";
         if (span.TotalDays < 7) return $"{(int)span.TotalDays} days ago";
         return $"{(int)(span.TotalDays / 7)} week ago";
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            _ = new MailAddress(email);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task MirrorUserToRoleDatabase(UserAccount user)

@@ -9,7 +9,17 @@
         * { box-sizing: border-box; }
         body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: #d7dee8; color: #1f2937; }
         .ad-shell { min-height: 100vh; display: grid; grid-template-columns: 280px minmax(0,1fr); }
-        .ad-side { background: linear-gradient(180deg, #2f4b8f, #355b9f); color: #e2ebff; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.18); }
+        .ad-side {
+            background: linear-gradient(180deg, #2f4b8f, #355b9f);
+            color: #e2ebff;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,.18);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
         .ad-brand { padding: 24px 22px; border-bottom: 1px solid rgba(255,255,255,.12); }
         .ad-brand h2 { margin: 0; font-size: 36px; line-height: 1; font-weight: 800; color: #fff; }
         .ad-brand p { margin: 8px 0 0; font-size: 28px; color: #c5d3f7; }
@@ -17,7 +27,7 @@
         .ad-nav a { display: flex; align-items: center; gap: 14px; color: #eff5ff; text-decoration: none; padding: 12px 14px; border-radius: 12px; font-size: 28px; }
         .ad-nav a.active { background: rgba(255,255,255,.16); }
         .ad-nav a.logout { margin-top: auto !important; color: #ff6b6b !important; }
-        .ad-main { min-width: 0; }
+        .ad-main { min-width: 0; min-height: 100vh; }
         .ad-top { background: #fff; border-bottom: 1px solid #d7dfed; padding: 24px 32px; }
         .ad-top h3 { margin: 0; font-size: 44px; color: #1f365f; }
         .ad-top p { margin: 6px 0 0; font-size: 34px; color: #6b7280; }
@@ -42,6 +52,11 @@
 
         @@media (max-width: 900px) {
             .ad-shell { grid-template-columns: 1fr; }
+            .ad-side {
+                position: static;
+                height: auto;
+                overflow: visible;
+            }
             .ad-nav a { font-size: 16px; }
             .ad-top h3 { font-size: 28px; }
             .ad-top p { font-size: 18px; }
@@ -100,6 +115,11 @@
 
         @@media (max-width: 900px) {
             .ad-shell { grid-template-columns: 1fr !important; }
+            .ad-side {
+                position: static !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
             .ad-brand h2 { font-size: 13px !important; }
             .ad-brand p { font-size: 10px !important; }
             .ad-nav a { font-size: 12px !important; }
@@ -129,6 +149,7 @@
                 <a class="@Active("approvals")" href="@Url.Action("OrganizerApproval", "Admin")"><i class="bi bi-person-check-fill"></i> Organizer Approval</a>
                 <a class="@Active("settings")" href="@Url.Action("SystemSettings", "Admin")"><i class="bi bi-gear-fill"></i> System Settings</a>
                 <a class="@Active("notifications")" href="@Url.Action("Notifications", "Admin")"><i class="bi bi-bell-fill"></i> Notifications</a>
+                <a class="@Active("newsletter")" href="@Url.Action("NewsletterSubscribers", "Admin")"><i class="bi bi-envelope-fill"></i> Newsletter Subscribers</a>
                 <a class="@Active("reviews")" href="@Url.Action("ReviewsRatings", "Admin")"><i class="bi bi-star-half"></i> Reviews & Ratings</a>
                 <a class="logout" href="/Auth/Logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
             </nav>

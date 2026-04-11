@@ -12,7 +12,22 @@ public class AdminDashboardViewModel
     public decimal OrganizersTrendPercent { get; set; }
     public decimal EventsTrendPercent { get; set; }
     public decimal RevenueTrendPercent { get; set; }
+    public int NewsletterSubscribersCount { get; set; }
     public List<AdminPendingApprovalItemViewModel> PendingApprovals { get; set; } = new();
+    public List<AdminNewsletterSubscriberItemViewModel> NewsletterSubscribers { get; set; } = new();
+}
+
+public class AdminNewsletterSubscriberItemViewModel
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string AddedOnText { get; set; } = string.Empty;
+}
+
+public class AdminNewsletterSubscribersViewModel
+{
+    public int TotalSubscribers { get; set; }
+    public List<AdminNewsletterSubscriberItemViewModel> Subscribers { get; set; } = new();
 }
 
 public class AdminPendingApprovalItemViewModel
