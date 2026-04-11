@@ -1,13 +1,14 @@
 using Eventify.Data;
 using Eventify.Models;
 using Eventify.Utilities;
+using Eventify.Utilities.Email;
 using Eventify.ViewModels.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Eventify.Controllers;
 
-public class AuthController(EventifyDbContext db, IConfiguration config) : Controller
+public class AuthController(EventifyDbContext db, IConfiguration config, IEmailSender emailSender) : Controller
 {
     private const string VerifyEmailPurpose = "verify-email";
     private const string ResetPasswordPurpose = "reset-password";
@@ -281,7 +282,32 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
         });
 
         await db.SaveChangesAsync();
+        await SendAuthCodeEmailAsync(normalizedEmail, purpose, code);
         return code;
+    }
+
+    private async Task SendAuthCodeEmailAsync(string email, string purpose, string code)
+    {
+        var isReset = string.Equals(purpose, ResetPasswordPurpose, StringComparison.OrdinalIgnoreCase);
+        var subject = isReset ? "Eventify password reset code" : "Eventify email verification code";
+        var intro = isReset
+            ? "Use this code to continue resetting your Eventify password."
+            : "Use this code to verify your Eventify email address.";
+
+        var body =
+            $"""
+            <div style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6;color:#1f2937;">
+                <h2 style="margin:0 0 12px;color:#1d4ed8;">Eventify</h2>
+                <p style="margin:0 0 16px;">{intro}</p>
+                <div style="display:inline-block;padding:14px 20px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;font-size:28px;font-weight:700;letter-spacing:4px;color:#1e3a8a;">
+                    {code}
+                </div>
+                <p style="margin:16px 0 0;">This code expires in 10 minutes.</p>
+                <p style="margin:8px 0 0;">If you did not request this, you can ignore this email.</p>
+            </div>
+            """;
+
+        await emailSender.SendAsync(email, subject, body);
     }
 
     private static string NormalizeCode(string code)

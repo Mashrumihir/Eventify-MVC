@@ -126,7 +126,7 @@
                 seconds -= 1;
                 if (seconds <= 0) {
                     clearInterval(timer);
-                    countdown.parentElement.innerHTML = 'Didn\\'t receive it? <button type="button" id="resendBtn">Resend code</button>';
+                    countdown.parentElement.innerHTML = "Didn't receive it? <button type=\"button\" id=\"resendBtn\">Resend code</button>";
                     document.getElementById("resendBtn").addEventListener("click", function () { resendForm.submit(); });
                     return;
                 }
