@@ -124,13 +124,16 @@
 .rv-stars { margin: 2px 0 0; color: #f5b301; font-size: 10px !important; }
 .rv-stars .time { color: #7f90aa; margin-left: 8px; }
 .rv-status { font-size: 12px !important; font-weight: 700; }
-.rv-status-btn {
-    border: 0;
-    background: transparent;
-    padding: 0;
+.rv-status-form { margin: 0; }
+.rv-status-select {
+    min-width: 110px;
+    border: 1px solid #d5deea;
+    border-radius: 8px;
+    background: #fff;
+    padding: 5px 28px 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
 }
 .rv-status.approved { color: #0b9a4c; }
 .rv-status.pending { color: #a16207; }
@@ -357,11 +360,37 @@
                         </div>
                     </div>
                 </div>
-                <form method="post" asp-controller="Admin" asp-action="UpdateReviewRatingStatus" style="margin:0;">
+                <form method="post" asp-controller="Admin" asp-action="UpdateReviewRatingStatus" class="rv-status-form">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@item.Id" />
-                    <input type="hidden" name="status" value="approved" />
-                    <button class="rv-status rv-status-btn @statusCss" type="submit">@statusLabel</button>
+                    <select name="status" class="rv-status rv-status-select @statusCss" onchange="this.form.submit()">
+                        @if (normalizedStatus == "approved")
+                        {
+                            <option value="approved" selected>Approved</option>
+                        }
+                        else
+                        {
+                            <option value="approved">Approved</option>
+                        }
+
+                        @if (normalizedStatus == "pending")
+                        {
+                            <option value="pending" selected>Pending</option>
+                        }
+                        else
+                        {
+                            <option value="pending">Pending</option>
+                        }
+
+                        @if (statusCss == "reported")
+                        {
+                            <option value="reported" selected>Reported</option>
+                        }
+                        else
+                        {
+                            <option value="reported">Reported</option>
+                        }
+                    </select>
                 </form>
             </div>
             <p class="rv-text">@item.Comment</p>
@@ -382,6 +411,11 @@
                     <input type="hidden" name="id" value="@item.Id" />
                     <input type="hidden" name="status" value="reported" />
                     <button class="btn-mini red" type="submit">Report</button>
+                </form>
+                <form method="post" asp-controller="Admin" asp-action="DeleteReviewRating" style="margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button class="btn-mini red" type="submit">Delete</button>
                 </form>
             </div>
         </article>

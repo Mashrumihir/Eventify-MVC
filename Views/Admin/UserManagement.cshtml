@@ -212,7 +212,7 @@
                 <div><strong>@u.Bookings</strong></div>
             }
             <div class="actions">
-                <form method="post" asp-controller="Admin" asp-action="BlockUser" class="action-form">
+                <form method="post" asp-controller="Admin" asp-action="BlockUser" class="action-form" onsubmit="return confirm('Are you sure you want to block or unblock this user?');">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@u.Id" />
                     <input type="hidden" name="returnUrl" value="@returnUrl" />

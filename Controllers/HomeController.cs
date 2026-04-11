@@ -3,6 +3,7 @@ using Eventify.Data;
 using Eventify.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
 
 namespace Eventify.Controllers
 {
@@ -91,6 +92,44 @@ namespace Eventify.Controllers
         {
             return View("Contact/Index");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitContact(string? fullName, string? email, string? subject, string? message)
+        {
+            var normalizedName = (fullName ?? string.Empty).Trim();
+            var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+            var normalizedSubject = string.IsNullOrWhiteSpace(subject) ? "General Query" : subject.Trim();
+            var normalizedMessage = (message ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(normalizedName) || string.IsNullOrWhiteSpace(normalizedEmail) || string.IsNullOrWhiteSpace(normalizedMessage))
+            {
+                TempData["ContactMessageStatus"] = "Please enter your name, email, and message.";
+                TempData["ContactMessageType"] = "error";
+                return RedirectToAction(nameof(Contact));
+            }
+
+            if (!IsValidEmail(normalizedEmail))
+            {
+                TempData["ContactMessageStatus"] = "Please enter a valid email address.";
+                TempData["ContactMessageType"] = "error";
+                return RedirectToAction(nameof(Contact));
+            }
+
+            _db.AdminContactMessages.Add(new AdminContactMessage
+            {
+                FullName = normalizedName,
+                Email = normalizedEmail,
+                Subject = normalizedSubject,
+                Message = normalizedMessage,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+            TempData["ContactMessageStatus"] = "Message sent successfully. Our team will contact you soon.";
+            TempData["ContactMessageType"] = "success";
+            return RedirectToAction(nameof(Contact));
+        }
         public IActionResult PrivacyPolicy()
         {
             return View("PrivacyPolicy/Index");
@@ -103,6 +142,19 @@ namespace Eventify.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            try
+            {
+                _ = new MailAddress(email);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

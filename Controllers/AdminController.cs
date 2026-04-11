@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 
 namespace Eventify.Controllers;
 
@@ -134,26 +135,30 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddNewsletterSubscriber(string email)
+    public async Task<IActionResult> AddNewsletterSubscriber(string email, string? returnUrl = null)
     {
         var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+        var redirectUrl = string.IsNullOrWhiteSpace(returnUrl)
+            ? Url.Action(nameof(Dashboard))
+            : returnUrl;
+
         if (string.IsNullOrWhiteSpace(normalizedEmail))
         {
             TempData["AdminActionMessage"] = "Enter an email address.";
-            return RedirectToAction(nameof(Dashboard));
+            return LocalRedirect(redirectUrl!);
         }
 
         if (!IsValidEmail(normalizedEmail))
         {
             TempData["AdminActionMessage"] = "Enter a valid email address.";
-            return RedirectToAction(nameof(Dashboard));
+            return LocalRedirect(redirectUrl!);
         }
 
         var exists = await db.AdminNewsletterSubscribers.AnyAsync(x => x.Email == normalizedEmail);
         if (exists)
         {
             TempData["AdminActionMessage"] = $"{normalizedEmail} is already subscribed.";
-            return RedirectToAction(nameof(Dashboard));
+            return LocalRedirect(redirectUrl!);
         }
 
         db.AdminNewsletterSubscribers.Add(new AdminNewsletterSubscriber
@@ -164,7 +169,29 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         await db.SaveChangesAsync();
 
         TempData["AdminActionMessage"] = $"{normalizedEmail} subscribed successfully.";
-        return RedirectToAction(nameof(Dashboard));
+        return LocalRedirect(redirectUrl!);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteNewsletterSubscriber(int id, string? returnUrl = null)
+    {
+        var redirectUrl = string.IsNullOrWhiteSpace(returnUrl)
+            ? Url.Action(nameof(NewsletterSubscribers))
+            : returnUrl;
+
+        var subscriber = await db.AdminNewsletterSubscribers.FirstOrDefaultAsync(x => x.Id == id);
+        if (subscriber is null)
+        {
+            TempData["AdminActionMessage"] = "Subscriber not found.";
+            return LocalRedirect(redirectUrl!);
+        }
+
+        db.AdminNewsletterSubscribers.Remove(subscriber);
+        await db.SaveChangesAsync();
+
+        TempData["AdminActionMessage"] = $"{subscriber.Email} deleted successfully.";
+        return LocalRedirect(redirectUrl!);
     }
 
     private async Task UpsertDashboardTrendAsync(string metric, decimal value)
@@ -343,9 +370,9 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
 
         if (!string.IsNullOrWhiteSpace(nameInput) || !string.IsNullOrWhiteSpace(emailInput) || !string.IsNullOrWhiteSpace(passwordInput))
         {
-            if (string.IsNullOrWhiteSpace(nameInput) || string.IsNullOrWhiteSpace(emailInput) || string.IsNullOrWhiteSpace(passwordInput))
+            if (string.IsNullOrWhiteSpace(emailInput) || string.IsNullOrWhiteSpace(passwordInput))
             {
-                TempData["UserActionMessage"] = "Enter full name, email, and password.";
+                TempData["UserActionMessage"] = "Enter email and password.";
                 return RedirectToAction(nameof(UserManagement), new { role });
             }
 
@@ -355,7 +382,9 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
                 return RedirectToAction(nameof(UserManagement), new { role });
             }
 
-            finalName = nameInput;
+            finalName = !string.IsNullOrWhiteSpace(nameInput)
+                ? nameInput
+                : DeriveDisplayNameFromEmail(emailInput, role);
             finalEmail = emailInput;
             finalPassword = passwordInput;
         }
@@ -407,6 +436,25 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         }
 
         return RedirectToAction(nameof(UserManagement), new { role });
+    }
+
+    private static string DeriveDisplayNameFromEmail(string email, string role)
+    {
+        var localPart = email.Split('@', 2)[0];
+        var cleaned = Regex.Replace(localPart, @"[._\-]+", " ").Trim();
+        if (string.IsNullOrWhiteSpace(cleaned))
+        {
+            return $"{char.ToUpper(role[0])}{role[1..]} User";
+        }
+
+        var words = cleaned
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(word => $"{char.ToUpper(word[0])}{word[1..]}")
+            .ToArray();
+
+        return words.Length == 0
+            ? $"{char.ToUpper(role[0])}{role[1..]} User"
+            : string.Join(' ', words);
     }
 
     [HttpPost]
@@ -763,6 +811,50 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         return View(model);
     }
 
+    public async Task<IActionResult> ContactMessages()
+    {
+        ViewData["Title"] = "Contact Messages";
+        ViewData["AdminNav"] = "contact";
+
+        var rows = await db.AdminContactMessages
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .ToListAsync();
+
+        var model = new AdminContactMessagesViewModel
+        {
+            Items = rows.Select(x => new AdminContactMessageItemViewModel
+            {
+                Id = x.Id,
+                FullName = x.FullName,
+                Email = x.Email,
+                Subject = x.Subject,
+                Message = x.Message,
+                ReceivedOnText = x.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt"),
+                SortDateUtc = x.CreatedAtUtc
+            }).ToList()
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteContactMessage(int id)
+    {
+        var row = await db.AdminContactMessages.FirstOrDefaultAsync(x => x.Id == id);
+        if (row is null)
+        {
+            TempData["AdminActionMessage"] = "Contact message not found.";
+            return RedirectToAction(nameof(ContactMessages));
+        }
+
+        db.AdminContactMessages.Remove(row);
+        await db.SaveChangesAsync();
+
+        TempData["AdminActionMessage"] = "Contact message deleted.";
+        return RedirectToAction(nameof(ContactMessages));
+    }
+
     public async Task<IActionResult> ReviewsRatings()
     {
         ViewData["Title"] = "Reviews & Ratings";
@@ -866,6 +958,24 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         return RedirectToAction(nameof(ReviewsRatings));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteReviewRating(int id)
+    {
+        var row = await db.AdminReviewRatings.FirstOrDefaultAsync(x => x.Id == id);
+        if (row is null)
+        {
+            TempData["AdminActionMessage"] = "Review not found.";
+            return RedirectToAction(nameof(ReviewsRatings));
+        }
+
+        db.AdminReviewRatings.Remove(row);
+        await db.SaveChangesAsync();
+
+        TempData["AdminActionMessage"] = "Review deleted.";
+        return RedirectToAction(nameof(ReviewsRatings));
+    }
+
     private static string NormalizeUserRoleFilter(string value)
     {
         var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
@@ -885,6 +995,7 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
         {
             "pending" => "pending",
             "approved" => "approved",
+            "reported" => "reported",
             "rejected" => "rejected",
             "featured" => "featured",
             "approve" => "approved",

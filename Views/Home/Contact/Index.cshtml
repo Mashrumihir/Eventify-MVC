@@ -184,6 +184,26 @@
         background-position: right center;
         box-shadow: 0 12px 20px rgba(32, 99, 191, .25);
     }
+    .ct-alert{
+        margin:0 0 12px;
+        border-radius:14px;
+        padding:12px 14px;
+        font-size:13px;
+        font-weight:700;
+        border:1px solid #cfe0f7;
+        background:#f7fbff;
+        color:#21467d;
+    }
+    .ct-alert.success{
+        background:#eefaf4;
+        border-color:#c9ecd8;
+        color:#0c9b5a;
+    }
+    .ct-alert.error{
+        background:#fff4f4;
+        border-color:#ffd0d0;
+        color:#c0392b;
+    }
     
     .ct-map {
         margin-top: 14px;
@@ -402,6 +422,12 @@
         <span>Go Back</span>
     </a>
 
+    @if (TempData["ContactMessageStatus"] is string statusMessage && !string.IsNullOrWhiteSpace(statusMessage))
+    {
+        var statusType = (TempData["ContactMessageType"]?.ToString() ?? "success").ToLowerInvariant();
+        <div class="ct-alert @(statusType == "error" ? "error" : "success")">@statusMessage</div>
+    }
+
     <section class="ct-wrap">
         <article class="ct-panel">
             <h1 class="ct-title">Get in Touch with Us</h1>
@@ -423,7 +449,8 @@
         </article>
 
         <article class="ct-panel">
-            <form id="contactForm" class="ct-form" action="#" method="post">
+            <form id="contactForm" class="ct-form" method="post" asp-controller="Home" asp-action="SubmitContact">
+                @Html.AntiForgeryToken()
                 <div class="ct-grid2">
                     <div class="ct-field">
                         <label for="fullName">Full Name</label>
@@ -476,20 +503,3 @@
         </div>
     </section>
 </div>
-<div class="ct-toast" id="contactToast">Message sent successfully. Our team will contact you soon.</div>
-
-<script>
-    (function () {
-        var form = document.getElementById('contactForm');
-        var toast = document.getElementById('contactToast');
-
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            toast.classList.add('show');
-            window.setTimeout(function () {
-                toast.classList.remove('show');
-            }, 2200);
-            form.reset();
-        });
-    })();
-</script>

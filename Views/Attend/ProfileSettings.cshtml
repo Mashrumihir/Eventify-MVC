@@ -2,6 +2,7 @@
 @{
     Layout = "_AttendLayout";
     ViewData["Title"] = "Profile Settings";
+    var activeTab = string.Equals(Model.ActiveTab, "password", StringComparison.OrdinalIgnoreCase) ? "password" : "edit";
     var displayName = string.IsNullOrWhiteSpace(Model.FullName) ? "Attend User" : Model.FullName.Trim();
     var nameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var initials = nameParts.Length switch
@@ -208,9 +209,8 @@
     <div class="ps-grid">
         <aside class="ps-menu">
             <nav class="ps-nav">
-                <a class="@(Model.ActiveTab == "edit" ? "active" : "")" href="/Attend/ProfileSettings?tab=edit"><i class="bi bi-person-fill"></i>Edit Profile</a>
-                <a class="@(Model.ActiveTab == "password" ? "active" : "")" href="/Attend/ProfileSettings?tab=password"><i class="bi bi-lock-fill"></i>Change Password</a>
-                <a class="@(Model.ActiveTab == "notifications" ? "active" : "")" href="/Attend/ProfileSettings?tab=notifications"><i class="bi bi-bell-fill"></i>Notifications</a>
+                <a class="@(activeTab == "edit" ? "active" : "")" href="/Attend/ProfileSettings?tab=edit"><i class="bi bi-person-fill"></i>Edit Profile</a>
+                <a class="@(activeTab == "password" ? "active" : "")" href="/Attend/ProfileSettings?tab=password"><i class="bi bi-lock-fill"></i>Change Password</a>
             </nav>
         </aside>
 
@@ -224,7 +224,7 @@
                 <div class="ps-msg err">@Model.Error</div>
             }
 
-            @if (Model.ActiveTab == "edit")
+            @if (activeTab == "edit")
             {
                 <h2 class="ps-head">Edit Profile</h2>
                 <form method="post" action="@Url.Action("SaveProfile", "Attend")" enctype="multipart/form-data" id="profile-edit-form">
@@ -284,7 +284,7 @@
                     </div>
                 </form>
             }
-            else if (Model.ActiveTab == "password")
+            else if (activeTab == "password")
             {
                 <h2 class="ps-head">Change Password</h2>
                 <form method="post" action="@Url.Action("ChangePassword", "Attend")">
@@ -318,66 +318,6 @@
                     <div class="ps-actions">
                         <button class="ps-btn primary" type="submit">Update Password</button>
                         <a class="ps-btn" href="/Attend/ProfileSettings?tab=password">Cancel</a>
-                    </div>
-                </form>
-            }
-            else
-            {
-                <h2 class="ps-head">Notification Preferences</h2>
-                <form method="post" action="@Url.Action("SaveNotificationPreferences", "Attend")">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="ActiveTab" value="notifications" />
-
-                    <div class="nt-item">
-                        <div>
-                            <p class="nt-name">Email Notifications</p>
-                            <p class="nt-sub">Receive updates via email</p>
-                        </div>
-                        <label class="sw">
-                            <input type="hidden" name="EmailNotifications" value="false" />
-                            <input type="checkbox" name="EmailNotifications" value="true" @(Model.EmailNotifications ? "checked" : "") />
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="nt-item">
-                        <div>
-                            <p class="nt-name">Push Notifications</p>
-                            <p class="nt-sub">Receive push notifications on your device</p>
-                        </div>
-                        <label class="sw">
-                            <input type="hidden" name="PushNotifications" value="false" />
-                            <input type="checkbox" name="PushNotifications" value="true" @(Model.PushNotifications ? "checked" : "") />
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="nt-item">
-                        <div>
-                            <p class="nt-name">Event Reminders</p>
-                            <p class="nt-sub">Get reminded about upcoming events</p>
-                        </div>
-                        <label class="sw">
-                            <input type="hidden" name="EventReminders" value="false" />
-                            <input type="checkbox" name="EventReminders" value="true" @(Model.EventReminders ? "checked" : "") />
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="nt-item">
-                        <div>
-                            <p class="nt-name">Promotions & Offers</p>
-                            <p class="nt-sub">Receive promotional emails and special offers</p>
-                        </div>
-                        <label class="sw">
-                            <input type="hidden" name="PromotionsOffers" value="false" />
-                            <input type="checkbox" name="PromotionsOffers" value="true" @(Model.PromotionsOffers ? "checked" : "") />
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="ps-actions">
-                        <button class="ps-btn primary" type="submit">Save Preferences</button>
                     </div>
                 </form>
             }

@@ -21,7 +21,7 @@
 table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px solid #e4e7ec;font-size: 13px;color:#344054}th{border-top:0;background:#f8fafc;color:#1f2937;font-weight:700}
 .badge{padding:4px 10px;border-radius:999px;font-size: 12px;font-weight:700}.ok{background:#dcfce7;color:#16a34a}.pending{background:#fef3c7;color:#ca8a04}.cancel{background:#fee2e2;color:#ef4444}
 .type{background:#e2e8f0;padding:4px 10px;border-radius:999px;font-size: 12px}
-.amount{color:#16a34a;font-weight:800}.act{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.act button{background:none;border:0;color:#2563eb;font-size: 13px;padding:0;cursor:pointer}
+.amount{color:#16a34a;font-weight:800}.act{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.act button{background:none;border:0;color:#2563eb;font-size: 13px;padding:0;cursor:pointer}.act .done{color:#98a2b3;font-size:13px;font-weight:600}
 .footer{padding:12px 16px;color:#667085;font-size: 12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .pager{display:flex;align-items:center;gap:8px}
 .pager a,.pager span{border:1px solid #cfd4dc;border-radius:8px;padding:6px 10px;font-size:12px;text-decoration:none}
@@ -129,11 +129,18 @@ table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-top:1px
                         <td>@row.Date.ToString("MMM d, yyyy")</td>
                         <td>
                             <div class="act">
-                                <form method="post" asp-action="Refund">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@row.Id" />
-                                    <button type="submit"><i class="bi bi-arrow-counterclockwise"></i> Refund</button>
-                                </form>
+                                @if (row.Status == "Canceled")
+                                {
+                                    <span class="done"><i class="bi bi-check2-circle"></i> Refunded</span>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-action="Refund">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@row.Id" />
+                                        <button type="submit"><i class="bi bi-arrow-counterclockwise"></i> Refund</button>
+                                    </form>
+                                }
                             </div>
                         </td>
                     </tr>

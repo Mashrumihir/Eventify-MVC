@@ -27,6 +27,7 @@ public class EventifyDbContext(DbContextOptions<EventifyDbContext> options) : Db
     public DbSet<AdminReviewRating> AdminReviewRatings => Set<AdminReviewRating>();
     public DbSet<AdminDashboardTrend> AdminDashboardTrends => Set<AdminDashboardTrend>();
     public DbSet<AdminNewsletterSubscriber> AdminNewsletterSubscribers => Set<AdminNewsletterSubscriber>();
+    public DbSet<AdminContactMessage> AdminContactMessages => Set<AdminContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -139,6 +140,21 @@ public class EventifyDbContext(DbContextOptions<EventifyDbContext> options) : Db
         modelBuilder.Entity<AdminNewsletterSubscriber>()
             .HasIndex(subscriber => subscriber.Email)
             .IsUnique();
+
+        modelBuilder.Entity<AdminContactMessage>()
+            .Property(message => message.FullName)
+            .HasMaxLength(120);
+
+        modelBuilder.Entity<AdminContactMessage>()
+            .Property(message => message.Email)
+            .HasMaxLength(256);
+
+        modelBuilder.Entity<AdminContactMessage>()
+            .Property(message => message.Subject)
+            .HasMaxLength(120);
+
+        modelBuilder.Entity<AdminContactMessage>()
+            .HasIndex(message => message.CreatedAtUtc);
 
         modelBuilder.Entity<AdminEventModeration>()
             .Property(item => item.Price)

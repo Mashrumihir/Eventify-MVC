@@ -141,6 +141,31 @@ using (var scope = app.Services.CreateScope())
             CREATE UNIQUE INDEX [IX_AdminNewsletterSubscribers_Email] ON [dbo].[AdminNewsletterSubscribers] ([Email]);
         END;
         """);
+    db.Database.ExecuteSqlRaw(
+        """
+        IF OBJECT_ID(N'[dbo].[AdminContactMessages]', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[AdminContactMessages] (
+                [Id] int NOT NULL IDENTITY,
+                [FullName] nvarchar(120) NOT NULL,
+                [Email] nvarchar(256) NOT NULL,
+                [Subject] nvarchar(120) NOT NULL,
+                [Message] nvarchar(max) NOT NULL,
+                [CreatedAtUtc] datetime2 NOT NULL,
+                CONSTRAINT [PK_AdminContactMessages] PRIMARY KEY ([Id])
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_AdminContactMessages_CreatedAtUtc'
+              AND object_id = OBJECT_ID(N'[dbo].[AdminContactMessages]')
+        )
+        BEGIN
+            CREATE INDEX [IX_AdminContactMessages_CreatedAtUtc] ON [dbo].[AdminContactMessages] ([CreatedAtUtc]);
+        END;
+        """);
     DbInitializer.Seed(db);
 
     if (!db.Bookings.Any() && db.Events.Any())

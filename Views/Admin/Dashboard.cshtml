@@ -46,136 +46,6 @@
 .pending { border-radius: 14px !important; border: 1px solid #bfd2ed !important; padding: 10px !important; }
 .pending h2 { margin: 0 0 10px; font-size: 17px !important; color: #23467d; font-weight: 800; }
 
-.hero {
-    margin-bottom: 14px;
-    padding: 26px 20px !important;
-    border: 0 !important;
-    border-radius: 22px !important;
-    background: linear-gradient(90deg, #2d479f 0%, #2877c5 52%, #2ab7b3 100%);
-    color: #fff;
-    text-align: center;
-    box-shadow: 0 16px 30px rgba(31, 71, 126, 0.16);
-}
-.hero-icon {
-    width: 42px;
-    height: 42px;
-    margin: 0 auto 16px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,.18);
-    font-size: 17px;
-}
-.hero h2 {
-    margin: 0;
-    color: #fff;
-    font-size: 42px !important;
-    line-height: 1.08;
-    font-weight: 900;
-}
-.hero p {
-    margin: 10px auto 0;
-    max-width: 760px;
-    color: rgba(255,255,255,.92);
-    font-size: 15px !important;
-}
-.subscribe-form {
-    margin: 18px auto 12px;
-    max-width: 620px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
-}
-.subscribe-input {
-    height: 52px;
-    border: 0;
-    border-radius: 999px;
-    padding: 0 18px;
-    font-size: 15px !important;
-    color: #274a80;
-    outline: none;
-}
-.subscribe-btn {
-    height: 52px;
-    padding: 0 22px !important;
-    border: 0;
-    border-radius: 999px !important;
-    background: #fff;
-    color: #1f4ea2;
-    font-size: 15px !important;
-    font-weight: 800;
-}
-.hero-note {
-    margin: 0;
-    color: rgba(255,255,255,.88);
-    font-size: 13px !important;
-}
-.dash-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
-    gap: 14px;
-}
-.subs-panel {
-    border-radius: 14px !important;
-    border: 1px solid #bfd2ed !important;
-    padding: 10px !important;
-}
-.subs-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-.subs-head h2 {
-    margin: 0;
-    font-size: 17px !important;
-    color: #23467d;
-    font-weight: 800;
-}
-.subs-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 38px;
-    height: 30px;
-    padding: 0 10px;
-    border-radius: 999px;
-    background: #edf3fc;
-    color: #2c538f;
-    font-weight: 800;
-}
-.sub-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: #f8fbff;
-    border: 1px solid #e1ebf8;
-    margin-bottom: 8px;
-}
-.sub-row:last-child { margin-bottom: 0; }
-.sub-row .mail {
-    color: #21467d;
-    font-weight: 700;
-    font-size: 14px !important;
-}
-.sub-row .time {
-    color: #6680a2;
-    font-size: 12px !important;
-}
-.empty-state {
-    margin: 0;
-    padding: 16px 10px;
-    text-align: center;
-    color: #6680a2;
-    background: #f8fbff;
-    border-radius: 12px;
-}
-
 .row {
     display: flex;
     justify-content: space-between;
@@ -202,19 +72,12 @@
 
 @@media (max-width: 1200px) {
     .stats { grid-template-columns: 1fr 1fr; }
-    .hero h2 { font-size: 34px !important; }
-    .dash-grid { grid-template-columns: 1fr; }
 }
 @@media (max-width: 760px) {
     .stats { grid-template-columns: 1fr; }
     .ad-title { font-size: 24px !important; }
     .ad-sub { font-size: 14px !important; }
     .stat .n { font-size: 36px !important; }
-    .hero { padding: 20px 16px !important; }
-    .hero h2 { font-size: 28px !important; }
-    .subscribe-form { grid-template-columns: 1fr; }
-    .subscribe-btn,
-    .subscribe-input { width: 100%; }
 }
 </style>
 }
@@ -225,18 +88,6 @@
 {
     <p class="action-msg">@actionMessage</p>
 }
-
-<section class="card hero">
-    <div class="hero-icon"><i class="bi bi-envelope"></i></div>
-    <h2>Stay Updated with the Latest Events</h2>
-    <p>Get exclusive access to upcoming events, special offers, and insider updates delivered straight to your inbox.</p>
-    <form method="post" asp-controller="Admin" asp-action="AddNewsletterSubscriber" class="subscribe-form">
-        @Html.AntiForgeryToken()
-        <input class="subscribe-input" type="email" name="email" placeholder="Enter your email address" required />
-        <button class="subscribe-btn" type="submit">Subscribe</button>
-    </form>
-    <p class="hero-note">We respect your privacy. Unsubscribe at any time.</p>
-</section>
 
 <div class="stats">
     <article class="card stat">
@@ -273,57 +124,33 @@
     </article>
 </div>
 
-<div class="dash-grid">
-    <section class="card pending">
-        <h2>Pending Approvals</h2>
-        @foreach (var p in Model.PendingApprovals)
-        {
-            var isOrganizer = string.Equals(p.Type, "Organizer", StringComparison.OrdinalIgnoreCase);
-            var actionName = isOrganizer ? "DecideOrganizer" : "DecideEvent";
-            <div class="row">
-                <div>
-                    <div class="name">@p.Name</div>
-                    <div class="meta">@p.Type • Submitted on @p.DateText</div>
-                </div>
-                <div class="actions">
-                    <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@p.Id" />
-                        <input type="hidden" name="decision" value="approve" />
-                        <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
-                        <button class="btn-grad" type="submit">Approve</button>
-                    </form>
-                    <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@p.Id" />
-                        <input type="hidden" name="decision" value="reject" />
-                        <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
-                        <button class="btn-outline-red" type="submit">Reject</button>
-                    </form>
-                </div>
+<section class="card pending">
+    <h2>Pending Approvals</h2>
+    @foreach (var p in Model.PendingApprovals)
+    {
+        var isOrganizer = string.Equals(p.Type, "Organizer", StringComparison.OrdinalIgnoreCase);
+        var actionName = isOrganizer ? "DecideOrganizer" : "DecideEvent";
+        <div class="row">
+            <div>
+                <div class="name">@p.Name</div>
+                <div class="meta">@p.Type • Submitted on @p.DateText</div>
             </div>
-        }
-    </section>
-
-    <section class="card subs-panel">
-        <div class="subs-head">
-            <h2>Newsletter Subscribers</h2>
-            <span class="subs-count">@Model.NewsletterSubscribersCount</span>
+            <div class="actions">
+                <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="decision" value="approve" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
+                    <button class="btn-grad" type="submit">Approve</button>
+                </form>
+                <form method="post" asp-controller="Admin" asp-action="@actionName" class="action-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="decision" value="reject" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Dashboard", "Admin")" />
+                    <button class="btn-outline-red" type="submit">Reject</button>
+                </form>
+            </div>
         </div>
-
-        @if (Model.NewsletterSubscribers.Count == 0)
-        {
-            <p class="empty-state">No subscribers yet.</p>
-        }
-        else
-        {
-            @foreach (var subscriber in Model.NewsletterSubscribers)
-            {
-                <div class="sub-row">
-                    <div class="mail">@subscriber.Email</div>
-                    <div class="time">@subscriber.AddedOnText</div>
-                </div>
-            }
-        }
-    </section>
-</div>
+    }
+</section>

@@ -1,0 +1,156 @@
+@model Eventify.ViewModels.AdminContactMessagesViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section PageStyles {
+<style>
+.ad-title{margin:0;font-size:22px;color:#1f3e76}
+.ad-sub{margin:4px 0 12px;font-size:13px;color:#6b7280}
+.action-msg{
+    margin:0 0 12px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#eefaf4;
+    border:1px solid #c9ecd8;
+    color:#0c9b5a;
+    font-size:13px;
+    font-weight:700;
+}
+.cm-wrap{
+    border:1px solid #cfdced !important;
+    border-radius:14px !important;
+    background:#fff;
+    overflow:hidden;
+}
+.cm-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    background:linear-gradient(90deg,#315db5,#2eb2cc);
+    color:#fff;
+}
+.cm-top h2{margin:0;font-size:16px !important;color:#fff}
+.cm-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:44px;
+    height:30px;
+    padding:0 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    font-weight:800;
+}
+.cm-list{padding:12px}
+.cm-item{
+    padding:14px;
+    border:1px solid #d8e5f3;
+    border-radius:12px;
+    background:#f8fbff;
+    margin-bottom:10px;
+}
+.cm-item:last-child{margin-bottom:0}
+.cm-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:8px;
+}
+.cm-name{margin:0;color:#21467d;font-size:14px !important;font-weight:800}
+.cm-email{margin:2px 0 0;color:#55749a;font-size:12px !important}
+.cm-time{color:#647d9d;font-size:12px;white-space:nowrap}
+.cm-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.cm-subject{
+    display:inline-flex;
+    margin:0 0 8px;
+    padding:5px 10px;
+    border-radius:999px;
+    background:#e9f2ff;
+    color:#29538d;
+    font-size:12px;
+    font-weight:700;
+}
+.cm-message{
+    margin:0;
+    color:#23476f;
+    font-size:13px;
+    line-height:1.6;
+    white-space:pre-wrap;
+}
+.cm-empty{
+    padding:24px 16px;
+    text-align:center;
+    color:#647d9d;
+    font-size:13px;
+}
+.cm-delete-form{margin:0}
+.cm-delete-btn{
+    border:1px solid #fecaca !important;
+    background:#fff5f5;
+    color:#dc2626;
+    border-radius:10px !important;
+    padding:6px 12px !important;
+    font-size:12px !important;
+    font-weight:700;
+    cursor:pointer;
+}
+@@media(max-width:760px){
+    .cm-head{flex-direction:column}
+    .cm-time{white-space:normal}
+    .cm-actions{width:100%;justify-content:space-between}
+}
+</style>
+}
+
+<h1 class="ad-title">Contact Messages</h1>
+<p class="ad-sub">View messages submitted from the website contact form.</p>
+@if (TempData["AdminActionMessage"] is string actionMessage && !string.IsNullOrWhiteSpace(actionMessage))
+{
+    <p class="action-msg">@actionMessage</p>
+}
+
+<section class="card cm-wrap">
+    <div class="cm-top">
+        <h2>Inbox</h2>
+        <span class="cm-pill">@Model.TotalMessages</span>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="cm-empty">No contact messages yet.</div>
+    }
+    else
+    {
+        <div class="cm-list">
+            @foreach (var item in Model.Items.OrderByDescending(x => x.SortDateUtc))
+            {
+                <article class="cm-item">
+                    <div class="cm-head">
+                        <div>
+                            <p class="cm-name">@item.FullName</p>
+                            <p class="cm-email">@item.Email</p>
+                        </div>
+                        <div class="cm-actions">
+                            <div class="cm-time">@item.ReceivedOnText</div>
+                            <form method="post" asp-controller="Admin" asp-action="DeleteContactMessage" class="cm-delete-form" onsubmit="return confirm('Delete this contact message?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button class="cm-delete-btn" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="cm-subject">@item.Subject</div>
+                    <p class="cm-message">@item.Message</p>
+                </article>
+            }
+        </div>
+    }
+</section>

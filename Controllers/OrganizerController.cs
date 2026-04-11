@@ -595,9 +595,17 @@ public class OrganizerController(EventifyDbContext db, IConfiguration config) : 
     public async Task<IActionResult> Refund(int id)
     {
         var booking = await db.MyBookings.FirstOrDefaultAsync(b => b.Id == id);
-        if (booking is not null)
+        if (booking is not null && booking.Status != "Canceled")
         {
             booking.Status = "Canceled";
+            var linkedBooking = await db.Bookings
+                .Where(b => b.EventItemId == booking.EventItemId && b.UserEmail == booking.UserEmail && b.Status != "Canceled")
+                .OrderByDescending(b => b.CreatedAtUtc)
+                .FirstOrDefaultAsync();
+            if (linkedBooking is not null)
+            {
+                linkedBooking.Status = "Canceled";
+            }
             await db.SaveChangesAsync();
         }
 

@@ -51,8 +51,7 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
 
         if (!user.IsEmailVerified)
         {
-            var verificationCode = await GenerateAuthCodeAsync(user.Email, VerifyEmailPurpose);
-            TempData["AuthDevCode"] = $"Verification code: {verificationCode}";
+            await GenerateAuthCodeAsync(user.Email, VerifyEmailPurpose);
             TempData["AuthMessage"] = "Please verify your email before signing in.";
             return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = VerifyEmailPurpose });
         }
@@ -97,18 +96,17 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
             PasswordText = model.Password,
             Role = model.Role,
             PasswordChangedAtUtc = DateTime.UtcNow,
-            IsEmailVerified = false
+            IsEmailVerified = true,
+            EmailVerifiedAtUtc = DateTime.UtcNow
         };
 
         db.Users.Add(user);
         await db.SaveChangesAsync();
         await EnsureProfileExistsForRoleAsync(user);
         await RoleDatabaseMirror.MirrorUserAsync(config, user);
-        var registrationCode = await GenerateAuthCodeAsync(user.Email, VerifyEmailPurpose);
-        TempData["AuthDevCode"] = $"Verification code: {registrationCode}";
 
-        TempData["AuthMessage"] = "Registration successful. Enter the verification code to continue.";
-        return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = VerifyEmailPurpose });
+        TempData["AuthMessage"] = "Registration successful. Please sign in.";
+        return RedirectToAction(nameof(Login));
     }
 
     public IActionResult ForgotPassword()
@@ -135,8 +133,7 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
             return View(model);
         }
 
-        var resetCode = await GenerateAuthCodeAsync(user.Email, ResetPasswordPurpose);
-        TempData["AuthDevCode"] = $"Reset code: {resetCode}";
+        await GenerateAuthCodeAsync(user.Email, ResetPasswordPurpose);
         TempData["AuthMessage"] = "Reset code generated. Enter it below to continue.";
         return RedirectToAction(nameof(VerifyEmail), new { email = user.Email, purpose = ResetPasswordPurpose });
     }
@@ -150,9 +147,7 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
         return View(new VerifyEmailViewModel
         {
             Email = normalizedEmail,
-            Purpose = resolvedPurpose,
-            DemoCode = GetLatestDemoCode(normalizedEmail, resolvedPurpose),
-            Code = GetLatestDemoCode(normalizedEmail, resolvedPurpose)
+            Purpose = resolvedPurpose
         });
     }
 
@@ -161,16 +156,8 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
     public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
     {
         ViewData["Title"] = model.Purpose == ResetPasswordPurpose ? "Verify Reset Code" : "Verify Email";
-        var latestDemoCode = GetLatestDemoCode(model.Email, model.Purpose);
-        if (string.IsNullOrWhiteSpace(model.Code) && !string.IsNullOrWhiteSpace(latestDemoCode))
-        {
-            model.Code = latestDemoCode;
-            ModelState.Remove(nameof(model.Code));
-        }
-
         if (!ModelState.IsValid)
         {
-            model.DemoCode = latestDemoCode;
             return View(model);
         }
 
@@ -184,7 +171,6 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
         if (authCode is null || authCode.ExpiresAtUtc < DateTime.UtcNow || authCode.Code != code)
         {
             ModelState.AddModelError(nameof(model.Code), "Invalid or expired code.");
-            model.DemoCode = latestDemoCode;
             return View(model);
         }
 
@@ -254,8 +240,7 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
     {
         if (!string.IsNullOrWhiteSpace(email))
         {
-            var latestCode = await GenerateAuthCodeAsync(email.Trim().ToLowerInvariant(), purpose);
-            TempData["AuthDevCode"] = $"{(purpose == ResetPasswordPurpose ? "Reset" : "Verification")} code: {latestCode}";
+            await GenerateAuthCodeAsync(email.Trim().ToLowerInvariant(), purpose);
         }
 
         TempData["AuthMessage"] = "A new verification code has been generated.";
@@ -339,21 +324,5 @@ public class AuthController(EventifyDbContext db, IConfiguration config) : Contr
         }
     }
 
-    private string GetLatestDemoCode(string email, string purpose)
-    {
-        var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
-        var normalizedPurpose = string.IsNullOrWhiteSpace(purpose) ? VerifyEmailPurpose : purpose;
-
-        if (string.IsNullOrWhiteSpace(normalizedEmail))
-        {
-            return string.Empty;
-        }
-
-        return db.AuthCodes
-            .Where(x => x.Email.ToLower() == normalizedEmail && x.Purpose == normalizedPurpose && !x.IsUsed && x.ExpiresAtUtc >= DateTime.UtcNow)
-            .OrderByDescending(x => x.CreatedAtUtc)
-            .Select(x => x.Code)
-            .FirstOrDefault() ?? string.Empty;
-    }
 }
 

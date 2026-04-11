@@ -152,3 +152,20 @@ public class AdminReviewRatingItemViewModel
     public string TimeAgo { get; set; } = string.Empty;
     public DateTime SortDateUtc { get; set; } = DateTime.UtcNow;
 }
+
+public class AdminContactMessagesViewModel
+{
+    public List<AdminContactMessageItemViewModel> Items { get; set; } = new();
+    public int TotalMessages => Items.Count;
+}
+
+public class AdminContactMessageItemViewModel
+{
+    public int Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string ReceivedOnText { get; set; } = string.Empty;
+    public DateTime SortDateUtc { get; set; } = DateTime.UtcNow;
+}
