@@ -101,9 +101,9 @@
     border-radius:14px;
     background:#fff;
 }
-.thead,.tr{display:grid;grid-template-columns:170px minmax(220px,1.5fr) minmax(180px,1.1fr) .9fr .9fr .8fr 160px;gap:0;align-items:center}
+.thead,.tr{display:grid;grid-template-columns:170px minmax(220px,1.5fr) minmax(180px,1.1fr) .9fr .9fr .8fr minmax(220px,1.1fr);gap:0;align-items:center}
 .tbl.no-bookings .thead,
-.tbl.no-bookings .tr{grid-template-columns:170px minmax(240px,1.7fr) minmax(190px,1.2fr) .95fr .95fr 160px}
+.tbl.no-bookings .tr{grid-template-columns:170px minmax(240px,1.7fr) minmax(190px,1.2fr) .95fr .95fr minmax(220px,1.1fr)}
 .thead{background:#355395;color:#fff;font-size:12px;font-weight:700;border-bottom:1px solid #cdd9ec}
 .tr{background:#fff;border-bottom:1px solid #d6e0ef;font-size:11px}
 .tr:last-child{border-bottom:0}
@@ -126,7 +126,7 @@
 .usercell strong{font-size:11px;line-height:1.2}
 .thead > div:last-child{text-align:center}
 .tr > div:last-child{text-align:center}
-.actions{display:flex;gap:8px;align-items:center;justify-content:center}
+.actions{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 .action-form{margin:0}
 .action-btn{
     border:1px solid #d2dceb;
@@ -139,14 +139,57 @@
     min-width:56px;
     cursor:pointer;
     text-align:center;
+    white-space:nowrap;
 }
 .action-btn.del{
     border-color:#fecaca;
     color:#dc2626;
     background:#fff5f5;
 }
-@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.2fr) minmax(150px,1fr) .85fr .85fr .6fr 140px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.4fr) minmax(150px,1.05fr) .9fr .9fr 140px}.ad-title{font-size:20px}.ad-sub{font-size:12px}.toolbar{grid-template-columns:1fr}.search{justify-content:flex-start}.search input{font-size:12px}}
-@@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.15fr 1fr .85fr .85fr .7fr 120px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.2fr 1fr .9fr .9fr 120px}.initial{width:24px;height:24px;font-size:10px}}
+.photo-backdrop{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(7,16,35,.55);
+    z-index:10000;
+    padding:16px;
+}
+.photo-modal{
+    width:min(420px,100%);
+    background:#fff;
+    border:1px solid #cfdbee;
+    border-radius:14px;
+    box-shadow:0 18px 42px rgba(10,23,50,.32);
+    padding:14px;
+}
+.photo-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.photo-modal-head h3{margin:0;color:#1d3e73;font-size:16px}
+.photo-close{
+    border:1px solid #c7d6ec;
+    background:#f8fbff;
+    color:#214473;
+    border-radius:8px;
+    padding:4px 10px;
+    font-size:12px;
+    cursor:pointer;
+}
+.photo-preview{
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:12px;
+    overflow:hidden;
+    background:#eef4ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #d6e0ef;
+}
+.photo-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-caption{margin:10px 0 0;font-size:12px;color:#4b5563}
+@@media(max-width:1200px){.thead,.tr{grid-template-columns:130px minmax(170px,1.2fr) minmax(150px,1fr) .85fr .85fr .6fr minmax(190px,1fr)}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:130px minmax(180px,1.4fr) minmax(150px,1.05fr) .9fr .9fr minmax(190px,1fr)}.ad-title{font-size:20px}.ad-sub{font-size:12px}.toolbar{grid-template-columns:1fr}.search{justify-content:flex-start}.search input{font-size:12px}}
+@@media(max-width:760px){.thead,.tr{grid-template-columns:1fr 1.15fr 1fr .85fr .85fr .7fr 150px;padding:8px 10px;font-size:10px}.tbl.no-bookings .thead,.tbl.no-bookings .tr{grid-template-columns:1fr 1.2fr 1fr .9fr .9fr 150px}.initial{width:24px;height:24px;font-size:10px}.actions{gap:6px}.action-btn{min-width:48px;padding:4px 6px}}
 </style>
 }
 
@@ -212,6 +255,16 @@
                 <div><strong>@u.Bookings</strong></div>
             }
             <div class="actions">
+                @if (u.CanViewPhoto)
+                {
+                    <button
+                        class="action-btn js-view-photo"
+                        type="button"
+                        data-photo-src="@u.ProfilePhotoPath"
+                        data-photo-name="@u.FullName">
+                        View
+                    </button>
+                }
                 <form method="post" asp-controller="Admin" asp-action="BlockUser" class="action-form" onsubmit="return confirm('Are you sure you want to block or unblock this user?');">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@u.Id" />
@@ -228,6 +281,19 @@
         </div>
     }
 </section>
+
+<div id="photoPreviewBackdrop" class="photo-backdrop">
+    <div class="photo-modal">
+        <div class="photo-modal-head">
+            <h3 id="photoPreviewTitle">Profile Photo</h3>
+            <button id="closePhotoPreview" class="photo-close" type="button">Close</button>
+        </div>
+        <div class="photo-preview">
+            <img id="photoPreviewImage" src="" alt="Profile photo preview" />
+        </div>
+        <p id="photoPreviewCaption" class="photo-caption"></p>
+    </div>
+</div>
 
 <div id="userAddBackdrop" class="user-add-backdrop">
     <div class="user-add-modal">
@@ -264,6 +330,11 @@
         const cancelBtn = document.getElementById("cancelAddUserModal");
         const pwInput = document.getElementById("newUserPassword");
         const pwToggle = document.getElementById("toggleNewUserPassword");
+        const photoBackdrop = document.getElementById("photoPreviewBackdrop");
+        const photoCloseBtn = document.getElementById("closePhotoPreview");
+        const photoImage = document.getElementById("photoPreviewImage");
+        const photoTitle = document.getElementById("photoPreviewTitle");
+        const photoCaption = document.getElementById("photoPreviewCaption");
         if (!openBtn || !backdrop || !cancelBtn) return;
 
         openBtn.addEventListener("click", function () {
@@ -299,6 +370,33 @@
                 toggleBtn.textContent = isHidden ? "Hide" : "Show";
             });
         });
+
+        function closePhotoModal() {
+            if (!photoBackdrop || !photoImage) return;
+            photoBackdrop.style.display = "none";
+            photoImage.setAttribute("src", "");
+        }
+
+        if (photoBackdrop && photoCloseBtn && photoImage && photoTitle && photoCaption) {
+            photoCloseBtn.addEventListener("click", closePhotoModal);
+            photoBackdrop.addEventListener("click", function (e) {
+                if (e.target === photoBackdrop) closePhotoModal();
+            });
+
+            document.querySelectorAll(".js-view-photo[data-photo-src]").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const src = btn.getAttribute("data-photo-src") || "";
+                    const fullName = btn.getAttribute("data-photo-name") || "User";
+                    if (!src) return;
+
+                    photoImage.setAttribute("src", src);
+                    photoImage.setAttribute("alt", fullName + " profile photo");
+                    photoTitle.textContent = "Profile Photo";
+                    photoCaption.textContent = fullName;
+                    photoBackdrop.style.display = "flex";
+                });
+            });
+        }
     })();
 </script>
 }

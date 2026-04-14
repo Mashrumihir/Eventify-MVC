@@ -234,6 +234,12 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
             .Select(g => new { Email = g.Key, Count = g.Count() })
             .ToListAsync();
         var bookingMap = bookingAgg.ToDictionary(x => x.Email, x => x.Count, StringComparer.OrdinalIgnoreCase);
+        var attendPhotoMap = await db.AttendProfileSettings
+            .Where(x => !string.IsNullOrWhiteSpace(x.ProfilePhotoPath))
+            .ToDictionaryAsync(x => x.UserEmail, x => x.ProfilePhotoPath, StringComparer.OrdinalIgnoreCase);
+        var organizerPhotoMap = await db.OrganizerProfileSettings
+            .Where(x => !string.IsNullOrWhiteSpace(x.ProfilePhotoPath))
+            .ToDictionaryAsync(x => x.UserEmail, x => x.ProfilePhotoPath, StringComparer.OrdinalIgnoreCase);
 
         role = NormalizeUserRoleFilter(role);
 
@@ -275,11 +281,33 @@ public class AdminController(EventifyDbContext db, IConfiguration config, IWebHo
                 Role = u.Role,
                 Status = string.Equals(u.Role, "blocked", StringComparison.OrdinalIgnoreCase) ? "blocked" : "active",
                 JoinDate = u.CreatedAtUtc.ToLocalTime(),
-                Bookings = bookingMap.TryGetValue(u.Email, out var count) ? count : 0
+                Bookings = bookingMap.TryGetValue(u.Email, out var count) ? count : 0,
+                ProfilePhotoPath = ResolveUserPhotoPath(u.Role, u.Email, attendPhotoMap, organizerPhotoMap)
             }).ToList()
         };
 
         return View(model);
+    }
+
+    private static string ResolveUserPhotoPath(
+        string role,
+        string email,
+        IReadOnlyDictionary<string, string> attendPhotoMap,
+        IReadOnlyDictionary<string, string> organizerPhotoMap)
+    {
+        if (string.Equals(role, "attend", StringComparison.OrdinalIgnoreCase) &&
+            attendPhotoMap.TryGetValue(email, out var attendPhoto))
+        {
+            return attendPhoto;
+        }
+
+        if (string.Equals(role, "organizer", StringComparison.OrdinalIgnoreCase) &&
+            organizerPhotoMap.TryGetValue(email, out var organizerPhoto))
+        {
+            return organizerPhoto;
+        }
+
+        return string.Empty;
     }
 
     private async Task EnsureAdminRecordsConnectedAsync()

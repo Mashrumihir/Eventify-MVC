@@ -9,7 +9,7 @@ public class EventifyDbContextFactory : IDesignTimeDbContextFactory<EventifyDbCo
     {
         var optionsBuilder = new DbContextOptionsBuilder<EventifyDbContext>();
         var connectionString =
-            "Server=(localdb)\\MSSQLLocalDB;Database=EventifyMvcDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
+            "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=EventifyMvcDb;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
 
         optionsBuilder.UseSqlServer(connectionString);
 

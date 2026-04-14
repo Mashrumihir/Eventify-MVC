@@ -59,6 +59,11 @@ public class AdminUserRowViewModel
     public string Status { get; set; } = "active";
     public DateTime JoinDate { get; set; }
     public int Bookings { get; set; }
+    public string ProfilePhotoPath { get; set; } = string.Empty;
+    public bool CanViewPhoto =>
+        !string.IsNullOrWhiteSpace(ProfilePhotoPath) &&
+        (string.Equals(Role, "attend", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Role, "organizer", StringComparison.OrdinalIgnoreCase));
 }
 
 public class AdminOrganizerApprovalViewModel
