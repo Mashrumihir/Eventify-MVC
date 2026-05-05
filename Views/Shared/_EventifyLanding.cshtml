@@ -211,16 +211,22 @@
     </div>
 </section>
 
-<section class="ev-section">
+<section id="newsletter" class="ev-section">
     <div class="container">
         <div class="ev-newsletter">
             <div class="ev-news-icon"><i class="bi bi-envelope-fill"></i></div>
             <h2>Stay Updated with the Latest Events</h2>
             <p>Get exclusive access to upcoming events, special offers, and insider updates delivered straight to your inbox.</p>
-            <div class="ev-news-form">
-                <input type="email" placeholder="Enter your email address" />
-                <button>Subscribe</button>
-            </div>
+            <form method="post" action="@Url.Action("SubscribeNewsletter", "Home")" class="ev-news-form">
+                @Html.AntiForgeryToken()
+                <input type="email" name="email" placeholder="Enter your email address" required />
+                <button type="submit">Subscribe</button>
+            </form>
+            @if (TempData["NewsletterMessage"] is string newsletterMessage && !string.IsNullOrWhiteSpace(newsletterMessage))
+            {
+                var newsletterType = TempData["NewsletterMessageType"] as string ?? "success";
+                <div class="ev-news-message @(newsletterType == "error" ? "is-error" : "is-success")">@newsletterMessage</div>
+            }
             <small>We respect your privacy. Unsubscribe at any time.</small>
         </div>
     </div>

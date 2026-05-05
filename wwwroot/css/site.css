@@ -488,6 +488,24 @@ a { text-decoration: none; color: inherit; }
     font-size: 13px;
     font-weight: 700;
 }
+.ev-news-message {
+    width: min(520px, 100%);
+    margin: 0 auto 8px;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.ev-news-message.is-success {
+    background: rgba(236, 253, 245, .18);
+    border: 1px solid rgba(187, 247, 208, .55);
+    color: #ecfdf5;
+}
+.ev-news-message.is-error {
+    background: rgba(254, 242, 242, .18);
+    border: 1px solid rgba(254, 202, 202, .65);
+    color: #fff1f2;
+}
 .ev-newsletter small { color: #d8e7ff; font-size: 12px; }
 
 .ev-footer {

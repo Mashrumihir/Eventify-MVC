@@ -130,6 +130,50 @@ namespace Eventify.Controllers
             TempData["ContactMessageType"] = "success";
             return RedirectToAction(nameof(Contact));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubscribeNewsletter(string? email)
+        {
+            var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(normalizedEmail))
+            {
+                TempData["NewsletterMessage"] = "Please enter your email address.";
+                TempData["NewsletterMessageType"] = "error";
+                return RedirectToAction(nameof(Index), null, null, "newsletter");
+            }
+
+            if (!IsValidEmail(normalizedEmail))
+            {
+                TempData["NewsletterMessage"] = "Please enter a valid email address.";
+                TempData["NewsletterMessageType"] = "error";
+                return RedirectToAction(nameof(Index), null, null, "newsletter");
+            }
+
+            var alreadySubscribed = await _db.AdminNewsletterSubscribers
+                .AnyAsync(subscriber => subscriber.Email == normalizedEmail);
+
+            if (alreadySubscribed)
+            {
+                TempData["NewsletterMessage"] = $"{normalizedEmail} is already subscribed.";
+                TempData["NewsletterMessageType"] = "success";
+                return RedirectToAction(nameof(Index), null, null, "newsletter");
+            }
+
+            _db.AdminNewsletterSubscribers.Add(new AdminNewsletterSubscriber
+            {
+                Email = normalizedEmail,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["NewsletterMessage"] = "Thanks for subscribing. Your email is now saved.";
+            TempData["NewsletterMessageType"] = "success";
+            return RedirectToAction(nameof(Index), null, null, "newsletter");
+        }
+
         public IActionResult PrivacyPolicy()
         {
             return View("PrivacyPolicy/Index");
