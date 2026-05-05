@@ -43,7 +43,7 @@
 
     var salesPoints = BuildPolyline(Model.SalesSeries);
     var revenuePoints = BuildPolyline(Model.RevenueSeries);
-    string GrowthText(decimal value) => $"{(value >= 0 ? "+" : "")}{value:0.0}%";
+    string FormatAxisTick(int value) => value == 0 ? "00" : value.ToString("0,0");
     var dayNames = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
     List<(double x, double y, int value)> BuildChartPoints(IReadOnlyList<int> values)
@@ -87,24 +87,92 @@
         .od-card.purple { border-top: 4px solid #a855f7; }
         .od-card.green { border-top: 4px solid #22c55e; }
         .od-card.orange { border-top: 4px solid #f97316; }
-        .od-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; margin-bottom: 8px; }
-        .od-icon.blue { background: #3b82f6; }
-        .od-icon.purple { background: #a855f7; }
-        .od-icon.green { background: #22c55e; }
-        .od-icon.orange { background: #f97316; }
-        .od-growth { position: absolute; right: 12px; top: 12px; color: #22c55e; font-size: 15px; font-weight: 700; }
         .od-card h3 { margin: 0; font-size: 22px; color: #111827; font-weight: 800; }
         .od-card p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
 
         .od-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .od-panel { background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px; }
+        .od-panel.od-sales-panel {
+            border-color: #dbe7ff;
+            background: linear-gradient(180deg, #f7fbff 0%, #f2f7ff 100%);
+            box-shadow: 0 16px 34px rgba(59, 130, 246, .10);
+        }
+        .od-panel.od-visitors-panel {
+            border-color: #dbeafe;
+            box-shadow: 0 18px 42px rgba(59, 130, 246, .10);
+        }
         .od-panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 800; }
         .od-line-layout, .od-bars-layout { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: stretch; }
         .od-axis { height: 300px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0 30px; color: #94a3b8; font-size: 12px; text-align: right; }
         .od-axis span { line-height: 1; }
-        .od-line-wrap { height: 300px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; padding: 10px; }
+        .od-line-wrap {
+            height: 300px;
+            border: 1px solid #cfe0ff;
+            border-radius: 16px;
+            overflow: hidden;
+            padding: 10px;
+            background:
+                radial-gradient(circle at 88% 16%, rgba(20, 184, 166, .18), transparent 32%),
+                radial-gradient(circle at 78% 12%, rgba(96, 165, 250, .18), transparent 36%),
+                linear-gradient(180deg, #fefeff 0%, #f4f8ff 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95);
+        }
         .od-line-svg { width: 100%; height: 100%; display: block; touch-action: manipulation; }
-        .od-line-dot { cursor: pointer; }
+        .od-grid-line {
+            stroke: #dbe5f3;
+            stroke-width: 1;
+            vector-effect: non-scaling-stroke;
+        }
+        .od-line-path {
+            fill: none;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            animation: odLineDraw 1.35s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+        .od-line-path.revenue { animation-delay: .18s; }
+        .od-line-glow {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: .22;
+            filter: url(#odLineGlow);
+            vector-effect: non-scaling-stroke;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            animation: odLineDraw 1.35s cubic-bezier(.22, 1, .36, 1) forwards;
+        }
+        .od-line-glow.revenue { animation-delay: .18s; }
+        .od-line-dot {
+            cursor: pointer;
+            opacity: 0;
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: odPointIn .45s cubic-bezier(.2, .9, .2, 1.35) forwards;
+            transition: r .18s ease, filter .18s ease;
+        }
+        .od-line-dot:hover,
+        .od-line-dot:focus {
+            r: 8;
+            filter: drop-shadow(0 6px 10px rgba(15, 23, 42, .22));
+            outline: none;
+        }
+        .od-line-halo {
+            opacity: 0;
+            animation: odHaloIn .5s ease forwards, odHaloPulse 2.4s ease-in-out infinite;
+            transform-box: fill-box;
+            transform-origin: center;
+        }
+        .od-x-label {
+            fill: #8397b2;
+            font-size: 11px;
+            font-weight: 700;
+            text-anchor: middle;
+        }
         .od-legend { display: flex; gap: 16px; margin-top: 10px; color: #64748b; font-size: 13px; }
         .od-dot { width: 18px; height: 3px; border-radius: 999px; display: inline-block; margin-right: 6px; vertical-align: middle; }
         .od-dot.blue { background: #3b82f6; }
@@ -137,10 +205,111 @@
             transform: translateX(-50%) rotate(45deg);
             border-radius: 1px;
         }
+        @@keyframes odLineDraw {
+            to { stroke-dashoffset: 0; }
+        }
+        @@keyframes odPointIn {
+            from { opacity: 0; transform: scale(.35); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @@keyframes odHaloIn {
+            from { opacity: 0; transform: scale(.5); }
+            to { opacity: .22; transform: scale(1); }
+        }
+        @@keyframes odHaloPulse {
+            0%, 100% { transform: scale(1); opacity: .18; }
+            50% { transform: scale(1.6); opacity: .08; }
+        }
+        @@keyframes odBarRise {
+            from { transform: scaleY(0); opacity: .4; }
+            to { transform: scaleY(1); opacity: 1; }
+        }
+        @@keyframes odValueIn {
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
 
         .od-chart { height: 300px; display: flex; align-items: flex-end; gap: 12px; padding: 8px 8px 30px; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 10px 6px 0; position: relative; }
-        .od-bars .bar { width: 52px; background: #3b82f6; border-radius: 8px 8px 0 0; position: relative; cursor: pointer; }
-        .od-chart .label { position: absolute; bottom: -24px; transform: translateX(-50%); color: #64748b; font-size: 12px; }
+        .od-bars {
+            height: 300px;
+            align-items: stretch;
+            justify-content: space-around;
+            gap: 14px;
+            margin: 0;
+            padding: 16px 16px 34px;
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            overflow: hidden;
+            background:
+                linear-gradient(180deg, rgba(226, 232, 240, .65) 1px, transparent 1px) 0 18px / 100% 52px,
+                radial-gradient(circle at 76% 10%, rgba(96, 165, 250, .18), transparent 30%),
+                linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95);
+        }
+        .od-bars .bar {
+            width: min(54px, 12%);
+            height: 100%;
+            min-width: 34px;
+            background: transparent;
+            border-radius: 0;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            outline: none;
+        }
+        .od-bars .bar-fill {
+            position: relative;
+            width: 100%;
+            height: var(--bar-height);
+            min-height: 4px;
+            border-radius: 10px 10px 4px 4px;
+            background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 55%, #2563eb 100%);
+            box-shadow: 0 16px 28px rgba(37, 99, 235, .22), inset 0 1px 0 rgba(255, 255, 255, .38);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            animation: odBarRise .9s cubic-bezier(.2, .9, .2, 1.12) forwards;
+            transition: filter .2s ease, box-shadow .2s ease;
+        }
+        .od-bars .bar-fill::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(255, 255, 255, .24), transparent 48%);
+            pointer-events: none;
+        }
+        .od-bars .bar:hover .bar-fill,
+        .od-bars .bar:focus .bar-fill {
+            filter: saturate(1.15);
+            box-shadow: 0 20px 32px rgba(37, 99, 235, .30), inset 0 1px 0 rgba(255, 255, 255, .48);
+        }
+        .od-bars .bar-value {
+            position: absolute;
+            left: 50%;
+            bottom: calc(var(--bar-height) + 12px);
+            transform: translateX(-50%) translateY(8px);
+            min-width: 28px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+            opacity: 0;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, .18);
+            animation: odValueIn .45s ease forwards;
+        }
+        .od-chart .label {
+            position: absolute;
+            left: 50%;
+            bottom: -24px;
+            transform: translateX(-50%);
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+        }
 
         .od-table-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; }
         .od-table-wrap h2 { margin: 0 0 10px; font-size: 16px; font-weight: 800; }
@@ -167,26 +336,72 @@
     </header>
 
     <div class="od-stats">
-        <article class="od-card blue"><span class="od-growth">@GrowthText(Model.RevenueGrowth)</span><span class="od-icon blue"><i class="bi bi-currency-rupee"></i></span><h3>&#8377;@Model.TotalRevenue.ToString("0,0")</h3><p>Total Revenue</p></article>
-        <article class="od-card purple"><span class="od-growth">@GrowthText(Model.TicketsGrowth)</span><span class="od-icon purple"><i class="bi bi-ticket-perforated"></i></span><h3>@Model.TicketsSold.ToString("0,0")</h3><p>Tickets Sold</p></article>
-        <article class="od-card green"><span class="od-growth">@GrowthText(Model.EventsGrowth)</span><span class="od-icon green"><i class="bi bi-calendar2-event"></i></span><h3>@Model.TotalEvents</h3><p>Total Events</p></article>
-        <article class="od-card orange"><span class="od-growth">@GrowthText(Model.ConversionGrowth)</span><span class="od-icon orange"><i class="bi bi-graph-up-arrow"></i></span><h3>@Model.ConversionRate.ToString("0.0")%</h3><p>Conversion Rate</p></article>
+        <article class="od-card blue"><h3>&#8377;@Model.TotalRevenue.ToString("0,0")</h3><p>Total Revenue</p></article>
+        <article class="od-card purple"><h3>@Model.TicketsSold.ToString("0,0")</h3><p>Tickets Sold</p></article>
+        <article class="od-card green"><h3>@Model.TotalEvents</h3><p>Total Events</p></article>
+        <article class="od-card orange"><h3>@Model.ConversionRate.ToString("0.0")%</h3><p>Conversion Rate</p></article>
     </div>
 
     <div class="od-grid">
-        <article class="od-panel">
+        <article class="od-panel od-sales-panel">
             <h2>Sales Chart</h2>
             <div class="od-line-layout">
                 <div class="od-axis" aria-hidden="true">
                     @foreach (var tick in salesScale)
                     {
-                        <span>@tick.ToString("0,0")</span>
+                        <span>@FormatAxisTick(tick)</span>
                     }
                 </div>
                 <div class="od-line-wrap">
                     <svg class="od-line-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
-                        <polyline fill="none" stroke="#3b82f6" stroke-width="4" points="@salesPoints" />
-                        <polyline fill="none" stroke="#14b8a6" stroke-width="4" points="@revenuePoints" />
+                        <defs>
+                            <linearGradient id="odSalesLine" x1="30" y1="0" x2="510" y2="0" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#2563eb" />
+                                <stop offset=".55" stop-color="#60a5fa" />
+                                <stop offset="1" stop-color="#3b82f6" />
+                            </linearGradient>
+                            <linearGradient id="odRevenueLine" x1="30" y1="0" x2="510" y2="0" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#0f766e" />
+                                <stop offset=".52" stop-color="#22d3ee" />
+                                <stop offset="1" stop-color="#14b8a6" />
+                            </linearGradient>
+                            <filter id="odLineGlow" x="-20%" y="-40%" width="140%" height="180%">
+                                <feGaussianBlur stdDeviation="5" result="blur" />
+                                <feMerge>
+                                    <feMergeNode in="blur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <line class="od-grid-line" x1="30" y1="50" x2="510" y2="50" />
+                        <line class="od-grid-line" x1="30" y1="95" x2="510" y2="95" />
+                        <line class="od-grid-line" x1="30" y1="140" x2="510" y2="140" />
+                        <line class="od-grid-line" x1="30" y1="185" x2="510" y2="185" />
+                        <line class="od-grid-line" x1="30" y1="230" x2="510" y2="230" />
+                        <polyline class="od-line-glow sales" stroke="url(#odSalesLine)" points="@salesPoints" pathLength="1" />
+                        <polyline class="od-line-glow revenue" stroke="url(#odRevenueLine)" points="@revenuePoints" pathLength="1" />
+                        <polyline class="od-line-path sales" stroke="url(#odSalesLine)" points="@salesPoints" pathLength="1" />
+                        <polyline class="od-line-path revenue" stroke="url(#odRevenueLine)" points="@revenuePoints" pathLength="1" />
+                        @for (var i = 0; i < salesChartPoints.Count; i++)
+                        {
+                            var point = salesChartPoints[i];
+                            <circle class="od-line-halo"
+                                    cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    r="10"
+                                    fill="#3b82f6"
+                                    style="animation-delay:@($"{0.55 + (i * 0.06):0.00}s");" />
+                        }
+                        @for (var i = 0; i < revenueChartPoints.Count; i++)
+                        {
+                            var point = revenueChartPoints[i];
+                            <circle class="od-line-halo"
+                                    cx="@point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                    r="10"
+                                    fill="#14b8a6"
+                                    style="animation-delay:@($"{0.72 + (i * 0.06):0.00}s");" />
+                        }
                         @for (var i = 0; i < salesChartPoints.Count; i++)
                         {
                             var point = salesChartPoints[i];
@@ -196,10 +411,15 @@
                                     cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                     r="6"
                                     fill="#3b82f6"
+                                    stroke="#fff"
+                                    stroke-width="3"
+                                    tabindex="0"
+                                    style="animation-delay:@($"{0.55 + (i * 0.06):0.00}s");"
                                     data-tip-title="Sales"
                                     data-tip-date="@label"
                                     data-tip-value="@point.value"
-                                    data-tip-label="Sales" />
+                                    data-tip-label="Sales"
+                                    aria-label="Sales @point.value on @label" />
                         }
                         @for (var i = 0; i < revenueChartPoints.Count; i++)
                         {
@@ -210,10 +430,22 @@
                                     cy="@point.y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                     r="6"
                                     fill="#14b8a6"
+                                    stroke="#fff"
+                                    stroke-width="3"
+                                    tabindex="0"
+                                    style="animation-delay:@($"{0.72 + (i * 0.06):0.00}s");"
                                     data-tip-title="Revenue"
                                     data-tip-date="@label"
                                     data-tip-value="@point.value"
-                                    data-tip-label="Revenue" />
+                                    data-tip-label="Revenue"
+                                    aria-label="Revenue @point.value on @label" />
+                        }
+                        @for (var i = 0; i < salesChartPoints.Count; i++)
+                        {
+                            var point = salesChartPoints[i];
+                            var label = i < dayNames.Length ? dayNames[i] : $"{i + 1}";
+                            var labelX = point.x.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                            @Html.Raw($"<text class=\"od-x-label\" x=\"{labelX}\" y=\"252\">{label}</text>")
                         }
                     </svg>
                 </div>
@@ -221,13 +453,13 @@
             <div class="od-legend"><span><i class="od-dot blue"></i>Sales</span><span><i class="od-dot green"></i>Revenue</span></div>
         </article>
 
-        <article class="od-panel">
+        <article class="od-panel od-visitors-panel">
             <h2>Visitors Chart</h2>
             <div class="od-bars-layout">
                 <div class="od-axis" aria-hidden="true">
                     @foreach (var tick in visitorScale)
                     {
-                        <span>@tick.ToString("0,0")</span>
+                        <span>@FormatAxisTick(tick)</span>
                     }
                 </div>
                 <div class="od-chart od-bars">
@@ -238,12 +470,16 @@
                             var dateLabel = i < Model.DateLabels.Count ? Model.DateLabels[i] : dayNames[i];
                             var h = (int)Math.Round((value * 220.0) / visitorMax);
                             <div class="bar"
-                                 style="height:@(h)px;"
+                                 tabindex="0"
+                                 style="--bar-height:@(h)px;"
                                  data-tip-title="Visitors"
                                  data-tip-date="@dateLabel"
                                  data-tip-value="@value"
-                                 data-tip-label="Visitors">
-                                <span class="label" style="left:24px;">@dayNames[i]</span>
+                                 data-tip-label="Visitors"
+                                 aria-label="Visitors @value on @dateLabel">
+                                <span class="bar-value" style="animation-delay:@($"{0.38 + (i * 0.07):0.00}s");">@value</span>
+                                <span class="bar-fill" style="animation-delay:@($"{0.12 + (i * 0.07):0.00}s");"></span>
+                                <span class="label">@dayNames[i]</span>
                             </div>
                         }
                     }
